@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KokoLinks CRM — Link-Building Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      colors: {
+        bg:      '#0f172a',
+        surface: { DEFAULT: '#1e293b', 2: '#253047' },
+        brd:     '#2d3f5a',
+        accent:  { DEFAULT: '#10b981', hover: '#059669' },
+        txt:     { DEFAULT: '#e2e8f0', 2: '#94a3b8' },
+        ok:      '#10b981',
+        danger:  '#ef4444',
+        warn:    '#f59e0b',
+        info:    '#3b82f6',
+        purple:  '#8b5cf6',
+      },
+    },
+  },
+}
+</script>
+<style type="text/tailwindcss">
+  @layer base {
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { @apply bg-bg text-txt font-sans text-sm min-h-screen; }
+    ::-webkit-scrollbar { width:5px; height:5px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { @apply bg-brd rounded; }
+    input, select, textarea { @apply bg-surface-2 border border-brd rounded-lg px-3 py-2 text-txt text-sm outline-none focus:border-accent transition-colors; }
+    button { @apply cursor-pointer transition-all; }
+  }
+
+  @layer components {
+    /* Topbar */
+    .topbar { @apply bg-surface border-b border-brd flex items-center gap-3 px-5 h-14 sticky top-0 z-50; }
+    .logo-icon { @apply w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold text-bg; background:linear-gradient(135deg,#10b981,#3b82f6); }
+    .live-badge { @apply flex items-center gap-1.5 bg-[#052e16] border border-[#166534] px-3 py-1 rounded-full text-[11px] text-ok; }
+    .live-dot { @apply w-2 h-2 bg-ok rounded-full animate-pulse; }
+
+    /* Layout */
+    .layout { @apply flex h-[calc(100vh-56px)]; }
+    .sidebar { @apply w-52 bg-surface border-r border-brd flex flex-col py-3 shrink-0; }
+    .nav-item { @apply flex items-center gap-2.5 px-4 py-2.5 text-txt-2 text-[13px] cursor-pointer transition-all border-l-[3px] border-transparent my-px hover:text-txt hover:bg-surface-2; }
+    .nav-item.active { @apply text-txt bg-surface-2 border-l-accent; }
+    .nav-icon { @apply text-base w-5 text-center; }
+    .nav-count { @apply ml-auto text-[10px] px-1.5 py-px rounded-full font-semibold; }
+    .main { @apply flex-1 overflow-y-auto p-6; }
+
+    /* Panels */
+    .panel { @apply hidden; }
+    .panel.active { @apply block; }
+
+    /* KPIs */
+    .kpi-grid { @apply grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6; }
+    .kpi { @apply bg-surface border border-brd rounded-2xl p-4 relative overflow-hidden hover:-translate-y-0.5 transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,.35)]; }
+    .kpi::before { content:''; @apply absolute top-0 left-0 right-0 h-[3px]; background:var(--c,#10b981); }
+    .kpi-label { @apply text-txt-2 text-[11px] font-medium uppercase tracking-wide mb-2; }
+    .kpi-val { @apply text-3xl font-bold text-txt; }
+    .kpi-sub { @apply text-txt-2 text-[11px] mt-1; }
+    .kpi-icon { @apply absolute top-4 right-4 text-2xl opacity-20; }
+
+    /* Tables */
+    .tbl-wrap { @apply bg-surface border border-brd rounded-2xl overflow-hidden; }
+    .tbl-head { @apply flex items-center justify-between px-5 py-4 border-b border-brd; }
+    .tbl-title { @apply font-semibold text-[15px]; }
+    table { @apply w-full; }
+    thead tr { @apply bg-surface-2; }
+    th { @apply text-left text-txt-2 text-[11px] font-semibold uppercase tracking-wide px-4 py-3; }
+    tbody tr { @apply border-t border-brd hover:bg-surface-2 transition-colors; }
+    td { @apply px-4 py-3 text-[13px]; }
+
+    /* Badges */
+    .badge { @apply inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold; }
+    .badge-green      { @apply bg-[#052e16] text-ok border border-[#166534]; }
+    .badge-green-dark { @apply bg-[#022512] text-[#34d399] border border-[#065f46]; }
+    .badge-yellow     { @apply bg-[#422006] text-warn border border-[#92400e]; }
+    .badge-blue       { @apply bg-[#0c1a3a] text-info border border-[#1d4ed8]; }
+    .badge-orange     { @apply bg-[#3a1c00] text-[#fb923c] border border-[#9a3412]; }
+    .badge-red        { @apply bg-[#2d0a0a] text-danger border border-[#991b1b]; }
+    .badge-purple     { @apply bg-[#1e0a3a] text-purple border border-[#6d28d9]; }
+    .badge-gray       { @apply bg-surface-2 text-txt-2 border border-brd; }
+
+    /* Buttons */
+    .btn { @apply px-4 py-2 rounded-lg text-[13px] font-medium; }
+    .btn-primary { @apply bg-accent text-bg hover:bg-accent-hover; }
+    .btn-ghost { @apply bg-surface-2 border border-brd text-txt hover:bg-brd; }
+    .btn-sm { @apply px-3 py-1.5 text-[12px]; }
+    .btn-xs { @apply px-2.5 py-1 text-[11px] rounded-md font-semibold; }
+    .btn-wf1 { @apply bg-[#422006] text-warn border border-[#92400e] hover:bg-[#5a2d08]; }
+    .btn-wf3 { @apply bg-[#3a1c00] text-[#fb923c] border border-[#9a3412] hover:bg-[#4d2500]; }
+    .btn-wf4 { @apply bg-[#1e0a3a] text-purple border border-[#6d28d9] hover:bg-[#2d1050]; }
+    .btn-wf2 { @apply bg-[#052e16] text-ok border border-[#166534] hover:bg-[#073d1e]; }
+
+    /* Comparador */
+    .price-found  { @apply text-ok font-bold text-base; }
+    .price-miss   { @apply text-txt-2 text-xs; }
+
+    /* Search bar */
+    .search-wrap { @apply flex gap-2 mb-5; }
+    .search-wrap input { @apply flex-1; }
+
+    /* Filters */
+    .filters-row { @apply flex flex-wrap gap-3 mb-4; }
+
+    /* Pagination */
+    .pagination { @apply flex items-center justify-between px-5 py-3 border-t border-brd text-[12px] text-txt-2; }
+    .page-btn { @apply px-3 py-1.5 rounded-lg bg-surface-2 border border-brd hover:bg-brd disabled:opacity-40 disabled:cursor-not-allowed text-txt text-[12px]; }
+
+    /* Trigger modal */
+    .modal-bg { @apply fixed inset-0 bg-black/60 flex items-center justify-center z-[200] hidden; }
+    .modal-bg.open { @apply flex; }
+    .modal { @apply bg-surface border border-brd rounded-2xl p-6 w-full max-w-md; }
+    .modal-title { @apply text-[16px] font-semibold mb-4; }
+    .field-group { @apply flex flex-col gap-1.5 mb-4; }
+    .field-label { @apply text-txt-2 text-[12px] font-medium; }
+
+    /* Loader */
+    .spinner { @apply w-5 h-5 rounded-full border-2 border-brd border-t-accent animate-spin inline-block; }
+
+    /* Toast */
+    .toast { @apply fixed bottom-6 right-6 bg-surface border border-brd rounded-xl px-4 py-3 text-sm z-[300] shadow-xl transition-all translate-y-20 opacity-0; }
+    .toast.show { @apply translate-y-0 opacity-100; }
+    .toast.ok   { @apply border-ok text-ok; }
+    .toast.err  { @apply border-danger text-danger; }
+    .toast.warn { @apply border-warn text-warn; }
+
+    /* Detail panel (slide-in) */
+    .detail-panel { @apply fixed top-0 right-0 h-full w-[480px] bg-surface border-l border-brd z-[150] overflow-y-auto translate-x-full transition-transform duration-300 shadow-2xl; }
+    .detail-panel.open { @apply translate-x-0; }
+    .detail-overlay { @apply fixed inset-0 bg-black/40 z-[140] hidden; }
+    .detail-overlay.open { @apply block; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo-icon">K</div>
+  <div>
+    <div class="font-bold text-[15px]">KokoLinks CRM</div>
+    <div class="text-txt-2 text-[10px]">Link-Building Dashboard</div>
+  </div>
+  <div class="flex-1"></div>
+  <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+  <div class="text-txt-2 text-[12px] hidden md:block" id="last-refresh">—</div>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="px-4 py-2 pb-1 text-txt-2 text-[10px] font-semibold uppercase tracking-wider">Menu</div>
+    <div class="nav-item active" onclick="showPanel('campaigns')" id="nav-campaigns">
+      <span class="nav-icon">📋</span>
+      <span>Campaigns</span>
+      <span class="nav-count bg-[#422006] text-warn" id="badge-campaigns">—</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('dashboard')" id="nav-dashboard">
+      <span class="nav-icon">📊</span>
+      <span>Dashboard</span>
+      <span class="nav-count bg-[#052e16] text-ok" id="badge-pending">—</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('comparador')" id="nav-comparador">
+      <span class="nav-icon">💰</span>
+      <span>Price Compare</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('medios')" id="nav-medios">
+      <span class="nav-icon">🌐</span>
+      <span>Media DB</span>
+      <span class="nav-count bg-[#1e0a3a] text-purple">8K+</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('triggers')" id="nav-triggers">
+      <span class="nav-icon">⚡</span>
+      <span>Triggers</span>
+    </div>
+    <div class="mt-auto px-4 py-3 border-t border-brd">
+      <div class="rounded-xl px-3 py-2.5 text-[11px] text-center font-semibold text-bg" style="background:linear-gradient(135deg,#10b981,#3b82f6)">
+        KokoLinks Media
+        <small class="block font-normal opacity-80 mt-0.5 text-bg/80">Felipe Brasil</small>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ═══ PANEL: Campaigns ═══ -->
+    <div class="panel active" id="panel-campaigns">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h1 class="text-xl font-bold">Campaigns</h1>
+          <p class="text-txt-2 text-[13px] mt-0.5">All active link-building publications</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost btn-sm flex items-center gap-2" onclick="loadCampaigns()">
+            <span id="camp-refresh-icon">🔄</span> Refresh
+          </button>
+          <button class="btn btn-primary btn-sm flex items-center gap-2" onclick="openNewCampaignModal()">
+            + New Campaign
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-row">
+        <select id="camp-filter-status" onchange="loadCampaigns()" style="width:180px">
+          <option value="all">All statuses</option>
+          <option value="pending_send">Pending Send</option>
+          <option value="email_sent">Email Sent</option>
+          <option value="client_review">Client Review</option>
+          <option value="approved">Approved</option>
+          <option value="live">Live</option>
+        </select>
+        <select id="camp-filter-country" onchange="loadCampaigns()" style="width:130px">
+          <option value="all">All countries</option>
+          <option value="AU">AU</option>
+          <option value="US">US</option>
+          <option value="UK">UK</option>
+          <option value="ES">ES</option>
+          <option value="CA">CA</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="clearCampFilters()">Clear</button>
+      </div>
+
+      <div class="tbl-wrap">
+        <div class="tbl-head">
+          <span class="tbl-title">Publications</span>
+          <span class="text-txt-2 text-[12px]" id="camp-count">Loading…</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Domain</th>
+                <th>Target Page</th>
+                <th>Country</th>
+                <th>DR</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="camp-tbody">
+              <tr><td colspan="8" class="text-center py-10 text-txt-2">
+                <div class="spinner mx-auto mb-2"></div>Loading…
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PANEL: Dashboard ═══ -->
+    <div class="panel" id="panel-dashboard">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold">Dashboard</h1>
+          <p class="text-txt-2 text-[13px] mt-0.5">Campaign summary</p>
+        </div>
+        <button class="btn btn-ghost btn-sm flex items-center gap-2" onclick="loadDashboard()">
+          <span id="refresh-icon">🔄</span> Refresh
+        </button>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi" style="--c:#f59e0b">
+          <div class="kpi-icon">✉️</div>
+          <div class="kpi-label">Pending Send (WF1)</div>
+          <div class="kpi-val" id="kpi-wf1">—</div>
+          <div class="kpi-sub">Enviar = yes / new</div>
+        </div>
+        <div class="kpi" style="--c:#3b82f6">
+          <div class="kpi-icon">👁️</div>
+          <div class="kpi-label">Client Review (WF3)</div>
+          <div class="kpi-val" id="kpi-wf3">—</div>
+          <div class="kpi-sub">Content Status = Checking by Client</div>
+        </div>
+        <div class="kpi" style="--c:#8b5cf6">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-label">Approved → Pub (WF4)</div>
+          <div class="kpi-val" id="kpi-wf4">—</div>
+          <div class="kpi-sub">Content Status = Approved</div>
+        </div>
+        <div class="kpi" style="--c:#10b981">
+          <div class="kpi-icon">🟢</div>
+          <div class="kpi-label">Live Links</div>
+          <div class="kpi-val" id="kpi-live">—</div>
+          <div class="kpi-sub">Live Link filled</div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="tbl-wrap">
+        <div class="tbl-head">
+          <span class="tbl-title">Quick Actions</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5">
+          <div class="bg-surface-2 border border-brd rounded-xl p-4">
+            <div class="font-semibold text-[13px] mb-1">WF1 — First Email to Media</div>
+            <div class="text-txt-2 text-[12px] mb-3">Sends first contact email to media (Enviar=yes/new)</div>
+            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf1')">Run WF1</button>
+          </div>
+          <div class="bg-surface-2 border border-brd rounded-xl p-4">
+            <div class="font-semibold text-[13px] mb-1">WF3 — Send Article to Client</div>
+            <div class="text-txt-2 text-[12px] mb-3">Sends article link to client for review</div>
+            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf3')">Run WF3</button>
+          </div>
+          <div class="bg-surface-2 border border-brd rounded-xl p-4">
+            <div class="font-semibold text-[13px] mb-1">WF4 — Publish Email to Media</div>
+            <div class="text-txt-2 text-[12px] mb-3">Sends approved article to media for publication</div>
+            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf4')">Run WF4</button>
+          </div>
+          <div class="bg-surface-2 border border-brd rounded-xl p-4">
+            <div class="font-semibold text-[13px] mb-1">WF2 — Update Live Link</div>
+            <div class="text-txt-2 text-[12px] mb-3">Updates live URL in client sheet</div>
+            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf2')">Run WF2</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PANEL: Price Compare ═══ -->
+    <div class="panel" id="panel-comparador">
+      <div class="mb-6">
+        <h1 class="text-xl font-bold">Price Comparator</h1>
+        <p class="text-txt-2 text-[13px] mt-0.5">Compare domain prices across 5 providers</p>
+      </div>
+
+      <div class="search-wrap">
+        <input type="text" id="comp-domain" placeholder="Enter domain, e.g. example.com" onkeydown="if(event.key==='Enter')searchPrices()">
+        <button class="btn btn-primary flex items-center gap-2" onclick="searchPrices()" id="comp-btn">
+          <span id="comp-icon">🔍</span> Compare
+        </button>
+      </div>
+
+      <div id="comp-results" class="hidden">
+        <div class="tbl-wrap">
+          <div class="tbl-head">
+            <span class="tbl-title" id="comp-domain-label">Results for —</span>
+            <span class="text-txt-2 text-[12px]" id="comp-found-count">—</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Provider</th>
+                  <th>Domain</th>
+                  <th>DR</th>
+                  <th class="text-right">Price</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="comp-tbody"></tbody>
+            </table>
+          </div>
+          <div id="comp-best" class="px-5 py-3 border-t border-brd text-[13px] text-txt-2 hidden">
+            Best price: <strong id="comp-best-val" class="text-ok text-base"></strong>
+            from <strong id="comp-best-prov"></strong>
+          </div>
+        </div>
+      </div>
+
+      <div id="comp-empty" class="text-center py-20 text-txt-2">
+        <div class="text-4xl mb-3">💰</div>
+        <div class="font-medium">Enter a domain to compare prices</div>
+        <div class="text-[12px] mt-1">Searches across Bazoom, Leolytics, WhitePress, BacklinksGlobal, MeUp</div>
+      </div>
+    </div>
+
+    <!-- ═══ PANEL: Media DB ═══ -->
+    <div class="panel" id="panel-medios">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold">Media Database</h1>
+          <p class="text-txt-2 text-[13px] mt-0.5">Bazoom catalog — 8,000+ domains</p>
+        </div>
+      </div>
+
+      <div class="filters-row">
+        <input type="text" id="medios-country" placeholder="Country (e.g. US, UK, ES)" style="width:180px">
+        <input type="number" id="medios-pmin" placeholder="Price min" style="width:130px">
+        <input type="number" id="medios-pmax" placeholder="Price max" style="width:130px">
+        <button class="btn btn-primary flex items-center gap-2" onclick="loadMedios(1)" id="medios-btn">
+          <span id="medios-icon">🔍</span> Filter
+        </button>
+        <button class="btn btn-ghost" onclick="clearMediosFilters()">Clear</button>
+      </div>
+
+      <div class="tbl-wrap">
+        <div class="tbl-head">
+          <span class="tbl-title">Domains</span>
+          <span class="text-txt-2 text-[12px]" id="medios-count">Loading…</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Domain</th>
+                <th>DR</th>
+                <th>Country</th>
+                <th class="text-right">Price</th>
+              </tr>
+            </thead>
+            <tbody id="medios-tbody">
+              <tr><td colspan="5" class="text-center py-10 text-txt-2">
+                <div class="spinner mx-auto mb-2"></div>Loading…
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span id="medios-page-info">Page 1</span>
+          <div class="flex gap-2">
+            <button class="page-btn" id="medios-prev" onclick="mediosPrev()" disabled>← Prev</button>
+            <button class="page-btn" id="medios-next" onclick="mediosNext()">Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PANEL: Triggers ═══ -->
+    <div class="panel" id="panel-triggers">
+      <div class="mb-6">
+        <h1 class="text-xl font-bold">Workflow Triggers</h1>
+        <p class="text-txt-2 text-[13px] mt-0.5">Manual execution of the 4 automation workflows</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4">
+
+        <div class="tbl-wrap">
+          <div class="tbl-head">
+            <div>
+              <div class="tbl-title">WF1 — First Email to Media</div>
+              <div class="text-txt-2 text-[12px] mt-0.5">Triggers when Enviar = "yes" (deal) or "new" (no deal).</div>
+            </div>
+          </div>
+          <div class="p-5">
+            <div class="field-group">
+              <label class="field-label">Linkplan Table ID (Airtable)</label>
+              <input type="text" id="wf1-table" value="tblzSdWocIxnZYk9Y" class="font-mono text-xs">
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-ghost btn-sm" onclick="runWF('wf1', true)">Dry Run</button>
+              <button class="btn btn-primary btn-sm" onclick="runWF('wf1', false)">Run WF1</button>
+            </div>
+            <div id="wf1-result" class="mt-3 hidden"></div>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-head">
+            <div>
+              <div class="tbl-title">WF3 — Send Article to Client</div>
+              <div class="text-txt-2 text-[12px] mt-0.5">Triggers when Content Status = "Checking by Client".</div>
+            </div>
+          </div>
+          <div class="p-5">
+            <div class="field-group">
+              <label class="field-label">Linkplan Table ID (Airtable)</label>
+              <input type="text" id="wf3-table" value="tblzSdWocIxnZYk9Y" class="font-mono text-xs">
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-ghost btn-sm" onclick="runWF('wf3', true)">Dry Run</button>
+              <button class="btn btn-primary btn-sm" onclick="runWF('wf3', false)">Run WF3</button>
+            </div>
+            <div id="wf3-result" class="mt-3 hidden"></div>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-head">
+            <div>
+              <div class="tbl-title">WF4 — Publish Email to Media</div>
+              <div class="text-txt-2 text-[12px] mt-0.5">Triggers when Content Status = "Approved".</div>
+            </div>
+          </div>
+          <div class="p-5">
+            <div class="field-group">
+              <label class="field-label">Linkplan Table ID (Airtable)</label>
+              <input type="text" id="wf4-table" value="tblzSdWocIxnZYk9Y" class="font-mono text-xs">
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-ghost btn-sm" onclick="runWF('wf4', true)">Dry Run</button>
+              <button class="btn btn-primary btn-sm" onclick="runWF('wf4', false)">Run WF4</button>
+            </div>
+            <div id="wf4-result" class="mt-3 hidden"></div>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-head">
+            <div>
+              <div class="tbl-title">WF2 — Update Live Link in Client Sheet</div>
+              <div class="text-txt-2 text-[12px] mt-0.5">Triggers when Live Link has URL and Client Approval = "Approved".</div>
+            </div>
+          </div>
+          <div class="p-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+              <div class="field-group">
+                <label class="field-label">Internal Table ID</label>
+                <input type="text" id="wf2-table-internal" value="tblzSdWocIxnZYk9Y" class="font-mono text-xs">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Client Sheet Table ID</label>
+                <input type="text" id="wf2-table-client" placeholder="tblXXXXXXXX" class="font-mono text-xs">
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-ghost btn-sm" onclick="runWF2(true)">Dry Run</button>
+              <button class="btn btn-primary btn-sm" onclick="runWF2(false)">Run WF2</button>
+            </div>
+            <div id="wf2-result" class="mt-3 hidden"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══ Detail Panel (slide-in) ═══ -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detail-panel">
+  <div class="p-5 border-b border-brd flex items-center justify-between sticky top-0 bg-surface z-10">
+    <div>
+      <div class="font-bold text-[15px]" id="detail-title">Publication Detail</div>
+      <div class="text-txt-2 text-[12px]" id="detail-subtitle">—</div>
+    </div>
+    <button onclick="closeDetail()" class="btn btn-ghost btn-sm">✕ Close</button>
+  </div>
+
+  <!-- Timeline -->
+  <div class="px-5 py-4 border-b border-brd">
+    <div class="text-txt-2 text-[11px] font-semibold uppercase tracking-wide mb-3">Progress</div>
+    <div class="flex items-center gap-0">
+      <div class="flex flex-col items-center" id="tl-wf1">
+        <div class="w-8 h-8 rounded-full border-2 border-brd flex items-center justify-center text-[11px] font-bold transition-all">WF1</div>
+        <div class="text-[10px] text-txt-2 mt-1 text-center w-16">Contact<br>Media</div>
+      </div>
+      <div class="flex-1 h-[2px] bg-brd mx-1 mb-5 transition-all" id="tl-line1"></div>
+      <div class="flex flex-col items-center" id="tl-wf3">
+        <div class="w-8 h-8 rounded-full border-2 border-brd flex items-center justify-center text-[11px] font-bold transition-all">WF3</div>
+        <div class="text-[10px] text-txt-2 mt-1 text-center w-16">Article to<br>Client</div>
+      </div>
+      <div class="flex-1 h-[2px] bg-brd mx-1 mb-5 transition-all" id="tl-line2"></div>
+      <div class="flex flex-col items-center" id="tl-wf4">
+        <div class="w-8 h-8 rounded-full border-2 border-brd flex items-center justify-center text-[11px] font-bold transition-all">WF4</div>
+        <div class="text-[10px] text-txt-2 mt-1 text-center w-16">Publish<br>Email</div>
+      </div>
+      <div class="flex-1 h-[2px] bg-brd mx-1 mb-5 transition-all" id="tl-line3"></div>
+      <div class="flex flex-col items-center" id="tl-wf2">
+        <div class="w-8 h-8 rounded-full border-2 border-brd flex items-center justify-center text-[11px] font-bold transition-all">WF2</div>
+        <div class="text-[10px] text-txt-2 mt-1 text-center w-16">Live<br>Link</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fields -->
+  <div class="p-5 space-y-4" id="detail-fields">
+    <div class="text-center py-8 text-txt-2">
+      <div class="spinner mx-auto mb-2"></div>Loading…
+    </div>
+  </div>
+
+  <!-- Editable fields -->
+  <div class="px-5 pb-5 border-t border-brd mt-2 pt-4">
+    <div class="text-txt-2 text-[11px] font-semibold uppercase tracking-wide mb-3">Edit</div>
+    <div class="field-group">
+      <label class="field-label">Live Link</label>
+      <input type="url" id="detail-live-link" placeholder="https://..." class="w-full">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Comments</label>
+      <textarea id="detail-comments" rows="3" class="w-full resize-none" placeholder="Add comments…"></textarea>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Content Status</label>
+      <select id="detail-content-status" class="w-full">
+        <option value="">— no change —</option>
+        <option value="Checking by Client">Checking by Client</option>
+        <option value="Approved">Approved</option>
+        <option value="Live">Live</option>
+      </select>
+    </div>
+    <div class="flex gap-2 mt-2">
+      <button class="btn btn-primary flex-1" onclick="saveDetail()" id="detail-save-btn">Save Changes</button>
+    </div>
+    <div id="detail-save-result" class="mt-2 hidden"></div>
+  </div>
+</div>
+
+<!-- ═══ Modal: trigger rapido desde Dashboard ═══ -->
+<div class="modal-bg" id="quick-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Run Workflow</div>
+    <div class="field-group">
+      <label class="field-label">Linkplan Table ID</label>
+      <input type="text" id="modal-table" value="tblzSdWocIxnZYk9Y" class="font-mono text-xs w-full">
+    </div>
+    <div id="modal-extra" class="hidden">
+      <div class="field-group">
+        <label class="field-label">Client Sheet Table ID</label>
+        <input type="text" id="modal-table-client" placeholder="tblXXXXXXXX" class="font-mono text-xs w-full">
+      </div>
+    </div>
+    <div id="modal-result" class="mt-3 hidden"></div>
+    <div class="flex gap-2 mt-4 justify-end">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-ghost btn-sm" onclick="runModal(true)">Dry Run</button>
+      <button class="btn btn-primary" onclick="runModal(false)" id="modal-run-btn">Run</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Modal: nueva campaña ═══ -->
+<div class="modal-bg" id="new-campaign-modal">
+  <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
+    <div class="modal-title">+ New Campaign</div>
+    <div class="grid grid-cols-2 gap-x-4">
+      <div class="field-group">
+        <label class="field-label">ID (e.g. VP0006)</label>
+        <input type="text" id="nc-id" placeholder="VP0006" class="w-full">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Date</label>
+        <input type="text" id="nc-date" placeholder="May 2026" class="w-full">
+      </div>
+      <div class="field-group col-span-2">
+        <label class="field-label">Domain</label>
+        <input type="url" id="nc-domain" placeholder="https://example.com" class="w-full">
+      </div>
+      <div class="field-group col-span-2">
+        <label class="field-label">Target Page</label>
+        <input type="url" id="nc-target" placeholder="https://casino.com/page" class="w-full">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Contact Email</label>
+        <input type="email" id="nc-email" placeholder="editor@site.com" class="w-full">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Enviar</label>
+        <select id="nc-enviar" class="w-full">
+          <option value="yes">yes (deal)</option>
+          <option value="new">new (no deal)</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">DR</label>
+        <input type="number" id="nc-dr" placeholder="70" class="w-full">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Price</label>
+        <input type="text" id="nc-price" placeholder="150" class="w-full">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Language</label>
+        <input type="text" id="nc-language" placeholder="EN" class="w-full">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Country</label>
+        <input type="text" id="nc-country" placeholder="AU" class="w-full">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Category</label>
+        <input type="text" id="nc-category" placeholder="Tech" class="w-full">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Linkbuilder</label>
+        <input type="text" id="nc-linkbuilder" placeholder="Ryan" class="w-full">
+      </div>
+      <div class="field-group col-span-2">
+        <label class="field-label">Content Topic</label>
+        <input type="text" id="nc-topic" placeholder="Casino review" class="w-full">
+      </div>
+    </div>
+    <div id="nc-result" class="mt-2 hidden"></div>
+    <div class="flex gap-2 mt-4 justify-end">
+      <button class="btn btn-ghost" onclick="closeNewCampaignModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewCampaign()" id="nc-submit-btn">Create Campaign</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+<script>
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8765'
+  : '';
+
+let currentWF = 'wf1';
+let currentDetailId = null;  // airtable_id del registro abierto en detail panel
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+function toast(msg, type = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => { t.className = 'toast'; }, 3500);
+}
+
+// ─── Nav ──────────────────────────────────────────────────────────────────────
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+
+  if (name === 'medios' && !mediosLoaded) loadMedios(1);
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'campaigns') loadCampaigns();
+}
+
+// ─── Status badges ────────────────────────────────────────────────────────────
+function getCampaignStatus(rec) {
+  // Determina el status visual basado en los campos reales
+  if (rec.live_link && rec.live_link.startsWith('http')) return 'live';
+  if (rec.content_status === 'Approved') return 'approved';
+  if (rec.content_status === 'Checking by Client') return 'client_review';
+  const enviar = (rec.enviar || '').toLowerCase();
+  if (enviar === 'sent') return 'email_sent';
+  if (enviar === 'yes' || enviar === 'new') return 'pending_send';
+  return 'unknown';
+}
+
+const STATUS_CONFIG = {
+  pending_send:  { label: 'Pending Send',   badge: 'badge-yellow',      color: '#f59e0b' },
+  email_sent:    { label: 'Email Sent',     badge: 'badge-blue',        color: '#3b82f6' },
+  client_review: { label: 'Client Review',  badge: 'badge-orange',      color: '#fb923c' },
+  approved:      { label: 'Approved',       badge: 'badge-green',       color: '#10b981' },
+  live:          { label: 'Live',           badge: 'badge-green-dark',  color: '#34d399' },
+  unknown:       { label: 'Unknown',        badge: 'badge-gray',        color: '#94a3b8' },
+};
+
+function statusBadge(status) {
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.unknown;
+  return `<span class="badge ${cfg.badge}">${cfg.label}</span>`;
+}
+
+function actionButton(rec) {
+  const status = getCampaignStatus(rec);
+  const id = rec.airtable_id;
+  if (status === 'pending_send') {
+    return `<button class="btn btn-xs btn-wf1" onclick="runWFForRow('wf1','${id}',event)">Send WF1</button>`;
+  }
+  if (status === 'client_review') {
+    return `<button class="btn btn-xs btn-wf3" onclick="runWFForRow('wf3','${id}',event)">Send WF3</button>`;
+  }
+  if (status === 'approved') {
+    return `<button class="btn btn-xs btn-wf4" onclick="runWFForRow('wf4','${id}',event)">Send WF4</button>`;
+  }
+  if (status === 'email_sent' && rec.live_link && rec.live_link.startsWith('http')) {
+    return `<button class="btn btn-xs btn-wf2" onclick="runWFForRow('wf2','${id}',event)">Mark Live WF2</button>`;
+  }
+  return `<span class="text-txt-2 text-[11px]">—</span>`;
+}
+
+// ─── Campaigns ────────────────────────────────────────────────────────────────
+async function loadCampaigns() {
+  document.getElementById('camp-refresh-icon').textContent = '⏳';
+  document.getElementById('camp-tbody').innerHTML =
+    `<tr><td colspan="8" class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Loading…</td></tr>`;
+
+  const statusSel = document.getElementById('camp-filter-status').value;
+  const countrySel = document.getElementById('camp-filter-country').value;
+
+  const params = new URLSearchParams();
+
+  // Mapeamos los valores del select a los valores reales de Airtable
+  const statusMap = {
+    pending_send:  'pending_send_raw',   // se maneja con enviar filter
+    email_sent:    'email_sent_raw',
+    client_review: 'Checking by Client',
+    approved:      'Approved',
+    live:          'live_raw',
+    all:           'all',
+  };
+
+  // Para filtros compuestos usamos logica en cliente tras fetch de todos
+  if (statusSel !== 'all') {
+    if (statusSel === 'client_review') params.set('status', 'Checking by Client');
+    else if (statusSel === 'approved') params.set('status', 'Approved');
+    else if (statusSel === 'pending_send') params.set('enviar', 'yes');
+    // live y email_sent: traemos todo y filtramos en cliente
+  }
+  if (countrySel !== 'all') params.set('country', countrySel);
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/campaigns?${params}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    let records = data.records;
+
+    // Filtrado adicional en cliente para statuses derivados
+    if (statusSel === 'live') {
+      records = records.filter(r => r.live_link && r.live_link.startsWith('http'));
+    } else if (statusSel === 'email_sent') {
+      records = records.filter(r => (r.enviar || '').toLowerCase() === 'sent');
+    } else if (statusSel === 'pending_send') {
+      // ya filtramos por enviar=yes en la query, pero new tambien es pending
+      // segundo fetch para new
+      const params2 = new URLSearchParams({ enviar: 'new' });
+      if (countrySel !== 'all') params2.set('country', countrySel);
+      const resp2 = await fetch(`${API_BASE}/api/campaigns?${params2}`);
+      if (resp2.ok) {
+        const data2 = await resp2.json();
+        records = [...records, ...data2.records];
+      }
+    }
+
+    renderCampaigns(records);
+    document.getElementById('camp-count').textContent = `${records.length} records`;
+
+    // Update badge in sidebar
+    const pending = records.filter(r => {
+      const s = getCampaignStatus(r);
+      return s === 'pending_send' || s === 'client_review' || s === 'approved';
+    }).length;
+    document.getElementById('badge-campaigns').textContent = pending || '';
+
+  } catch (e) {
+    document.getElementById('camp-tbody').innerHTML =
+      `<tr><td colspan="8" class="text-center py-10 text-danger">Error: ${e.message}</td></tr>`;
+    toast('Error loading campaigns: ' + e.message, 'err');
+  }
+  document.getElementById('camp-refresh-icon').textContent = '🔄';
+}
+
+function renderCampaigns(records) {
+  const tbody = document.getElementById('camp-tbody');
+  if (!records.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-txt-2">No campaigns found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  records.forEach(rec => {
+    const status = getCampaignStatus(rec);
+    const domain = (rec.domain || '').replace(/^https?:\/\//, '').replace(/\/.*/, '');
+    const targetPage = rec.target_page
+      ? `<a href="${rec.target_page}" target="_blank" class="text-info hover:underline text-[12px] font-mono truncate block max-w-[120px]">${rec.target_page.replace(/^https?:\/\//, '').slice(0, 20)}…</a>`
+      : '—';
+    const tr = document.createElement('tr');
+    tr.className = 'cursor-pointer';
+    tr.onclick = () => openDetail(rec.airtable_id);
+    tr.innerHTML = `
+      <td class="font-mono text-[12px] font-semibold text-accent">${rec.id || rec.airtable_id.slice(0,8)}</td>
+      <td class="font-mono text-[12px]">${domain || '—'}</td>
+      <td>${targetPage}</td>
+      <td class="text-txt-2">${rec.country || '—'}</td>
+      <td class="font-semibold">${rec.dr ?? '—'}</td>
+      <td class="text-ok font-semibold">${rec.price ? '$' + rec.price : '—'}</td>
+      <td>${statusBadge(status)}</td>
+      <td onclick="event.stopPropagation()">${actionButton(rec)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function clearCampFilters() {
+  document.getElementById('camp-filter-status').value = 'all';
+  document.getElementById('camp-filter-country').value = 'all';
+  loadCampaigns();
+}
+
+// ─── Run WF for a single row (desde tabla Campaigns) ─────────────────────────
+async function runWFForRow(wf, airtableId, event) {
+  event.stopPropagation();
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    // Para row-level triggers usamos el endpoint de WF con la tabla linkplans
+    const tableId = 'tblzSdWocIxnZYk9Y';
+    let body = { linkplan_table_id: tableId, dry_run: false };
+    if (wf === 'wf2') {
+      toast('WF2 row-level: use the Triggers panel for full WF2', 'warn');
+      btn.disabled = false;
+      btn.textContent = 'Mark Live WF2';
+      return;
+    }
+    const resp = await fetch(`${API_BASE}/${wf}/trigger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    if (data.processed > 0) {
+      toast(`${wf.toUpperCase()} completed — ${data.processed} sent`, 'ok');
+      loadCampaigns();
+    } else {
+      toast(`${wf.toUpperCase()}: 0 rows processed. Check email config.`, 'warn');
+    }
+  } catch (e) {
+    toast('Error: ' + e.message, 'err');
+  }
+  btn.disabled = false;
+}
+
+// ─── Detail Panel ─────────────────────────────────────────────────────────────
+async function openDetail(airtableId) {
+  currentDetailId = airtableId;
+  document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('detail-overlay').classList.add('open');
+  document.getElementById('detail-fields').innerHTML =
+    `<div class="text-center py-8 text-txt-2"><div class="spinner mx-auto mb-2"></div>Loading…</div>`;
+  document.getElementById('detail-save-result').classList.add('hidden');
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/campaigns/${airtableId}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const rec = await resp.json();
+    renderDetail(rec);
+  } catch (e) {
+    document.getElementById('detail-fields').innerHTML =
+      `<div class="text-danger text-[13px]">Error: ${e.message}</div>`;
+  }
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('detail-overlay').classList.remove('open');
+  currentDetailId = null;
+}
+
+function renderDetail(rec) {
+  document.getElementById('detail-title').textContent = rec.id || rec.airtable_id;
+  const domain = (rec.domain || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+  document.getElementById('detail-subtitle').textContent = domain || 'No domain';
+
+  // Timeline
+  updateTimeline(rec);
+
+  // Pre-fill editable fields
+  document.getElementById('detail-live-link').value = rec.live_link || '';
+  document.getElementById('detail-comments').value = rec.comments || '';
+  document.getElementById('detail-content-status').value = '';
+
+  // Fields display
+  const fields = [
+    ['ID', rec.id],
+    ['Date', rec.date],
+    ['Domain', rec.domain ? `<a href="${rec.domain}" target="_blank" class="text-info hover:underline">${rec.domain}</a>` : '—'],
+    ['Target Page', rec.target_page ? `<a href="${rec.target_page}" target="_blank" class="text-info hover:underline text-[12px] font-mono break-all">${rec.target_page}</a>` : '—'],
+    ['Contact Email', rec.contact_email || '—'],
+    ['Enviar', rec.enviar || '—'],
+    ['Status BOT', rec.status_bot || '—'],
+    ['Content Status', rec.content_status || '—'],
+    ['Client Approval', rec.client_approval || '—'],
+    ['DR', rec.dr ?? '—'],
+    ['Price', rec.price ? '$' + rec.price : '—'],
+    ['Language', rec.language || '—'],
+    ['Category', rec.category || '—'],
+    ['Country', rec.country || '—'],
+    ['Linkbuilder', rec.linkbuilder || '—'],
+    ['Content Topic', rec.content_topic || '—'],
+    ['Traffic', rec.traffic ? Number(rec.traffic).toLocaleString() : '—'],
+    ['Content URL', rec.content_url ? `<a href="${rec.content_url}" target="_blank" class="text-info hover:underline text-[12px]">Open doc</a>` : '—'],
+    ['Conversation URL', rec.conversation_url ? `<a href="${rec.conversation_url}" target="_blank" class="text-info hover:underline text-[12px]">Open Gmail</a>` : '—'],
+    ['Live Link', rec.live_link ? `<a href="${rec.live_link}" target="_blank" class="text-ok hover:underline text-[12px] break-all">${rec.live_link}</a>` : '—'],
+    ['Article Sent Date', rec.article_sent_date || '—'],
+    ['Link Final Status', rec.link_final_status || '—'],
+    ['Invoice Status', rec.invoice_status || '—'],
+    ['Message ID', rec.message_id || '—'],
+  ];
+
+  let html = `<div class="grid grid-cols-2 gap-x-4 gap-y-3">`;
+  fields.forEach(([label, val]) => {
+    html += `
+      <div class="col-span-${label.includes('URL') || label === 'Target Page' || label === 'Live Link' ? '2' : '1'}">
+        <div class="text-txt-2 text-[10px] font-semibold uppercase tracking-wide mb-0.5">${label}</div>
+        <div class="text-[13px]">${val ?? '—'}</div>
+      </div>`;
+  });
+  html += `</div>`;
+  document.getElementById('detail-fields').innerHTML = html;
+}
+
+function updateTimeline(rec) {
+  const status = getCampaignStatus(rec);
+  const stages = ['wf1', 'wf3', 'wf4', 'wf2'];
+  const stageOrder = { pending_send: 0, email_sent: 1, client_review: 1, approved: 2, live: 4 };
+  const reached = stageOrder[status] ?? 0;
+
+  stages.forEach((stage, i) => {
+    const el = document.getElementById(`tl-${stage}`).querySelector('div');
+    if (i < reached || (status === 'live' && i <= 3)) {
+      el.className = 'w-8 h-8 rounded-full border-2 flex items-center justify-center text-[11px] font-bold transition-all border-ok bg-[#052e16] text-ok';
+    } else if (i === reached && status !== 'unknown') {
+      el.className = 'w-8 h-8 rounded-full border-2 flex items-center justify-center text-[11px] font-bold transition-all border-warn bg-[#422006] text-warn';
+    } else {
+      el.className = 'w-8 h-8 rounded-full border-2 flex items-center justify-center text-[11px] font-bold transition-all border-brd text-txt-2';
+    }
+  });
+
+  for (let i = 1; i <= 3; i++) {
+    const line = document.getElementById(`tl-line${i}`);
+    if (i < reached || status === 'live') {
+      line.className = 'flex-1 h-[2px] mx-1 mb-5 transition-all bg-ok';
+    } else {
+      line.className = 'flex-1 h-[2px] mx-1 mb-5 transition-all bg-brd';
+    }
+  }
+}
+
+async function saveDetail() {
+  if (!currentDetailId) return;
+  const btn = document.getElementById('detail-save-btn');
+  const resultEl = document.getElementById('detail-save-result');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  resultEl.classList.add('hidden');
+
+  const liveLink = document.getElementById('detail-live-link').value.trim();
+  const comments = document.getElementById('detail-comments').value.trim();
+  const contentStatus = document.getElementById('detail-content-status').value;
+
+  const payload = {};
+  if (liveLink) payload.live_link = liveLink;
+  if (comments) payload.comments = comments;
+  if (contentStatus) payload.content_status = contentStatus;
+
+  if (Object.keys(payload).length === 0) {
+    toast('Nothing to save', 'warn');
+    btn.disabled = false;
+    btn.textContent = 'Save Changes';
+    return;
+  }
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/campaigns/${currentDetailId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const updated = await resp.json();
+    renderDetail(updated);
+    toast('Saved successfully', 'ok');
+    loadCampaigns();
+  } catch (e) {
+    resultEl.innerHTML = `<div class="text-danger text-[12px]">Error: ${e.message}</div>`;
+    resultEl.classList.remove('hidden');
+    toast('Save failed: ' + e.message, 'err');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Save Changes';
+}
+
+// ─── New Campaign Modal ───────────────────────────────────────────────────────
+function openNewCampaignModal() {
+  document.getElementById('new-campaign-modal').classList.add('open');
+  document.getElementById('nc-result').classList.add('hidden');
+}
+
+function closeNewCampaignModal() {
+  document.getElementById('new-campaign-modal').classList.remove('open');
+}
+
+async function submitNewCampaign() {
+  const btn = document.getElementById('nc-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+
+  const payload = {
+    id: document.getElementById('nc-id').value.trim() || undefined,
+    date: document.getElementById('nc-date').value.trim() || undefined,
+    domain: document.getElementById('nc-domain').value.trim() || undefined,
+    target_page: document.getElementById('nc-target').value.trim() || undefined,
+    contact_email: document.getElementById('nc-email').value.trim() || undefined,
+    enviar: document.getElementById('nc-enviar').value || undefined,
+    dr: document.getElementById('nc-dr').value ? parseInt(document.getElementById('nc-dr').value) : undefined,
+    price: document.getElementById('nc-price').value.trim() || undefined,
+    language: document.getElementById('nc-language').value.trim() || undefined,
+    country: document.getElementById('nc-country').value.trim() || undefined,
+    category: document.getElementById('nc-category').value.trim() || undefined,
+    linkbuilder: document.getElementById('nc-linkbuilder').value.trim() || undefined,
+    content_topic: document.getElementById('nc-topic').value.trim() || undefined,
+  };
+
+  // Remove undefined keys
+  Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
+
+  const resultEl = document.getElementById('nc-result');
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/campaigns`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const rec = await resp.json();
+    toast(`Campaign ${rec.id || rec.airtable_id} created`, 'ok');
+    closeNewCampaignModal();
+    loadCampaigns();
+    // Clear form
+    ['nc-id','nc-date','nc-domain','nc-target','nc-email','nc-dr','nc-price','nc-language','nc-country','nc-category','nc-linkbuilder','nc-topic'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  } catch (e) {
+    resultEl.innerHTML = `<div class="text-danger text-[12px]">Error: ${e.message}</div>`;
+    resultEl.classList.remove('hidden');
+    toast('Error creating campaign: ' + e.message, 'err');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Create Campaign';
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  document.getElementById('refresh-icon').textContent = '⏳';
+  try {
+    const resp = await fetch(`${API_BASE}/status`);
+    const data = await resp.json();
+
+    if (data.warning) {
+      setKPI('kpi-wf1', '—'); setKPI('kpi-wf3', '—');
+      setKPI('kpi-wf4', '—'); setKPI('kpi-live', '—');
+    } else {
+      const c = data.counts || {};
+      setKPI('kpi-wf1', c.pending_wf1 ?? '—');
+      setKPI('kpi-wf3', c.checking ?? '—');
+      setKPI('kpi-wf4', c.approved_wf4 ?? '—');
+      setKPI('kpi-live', c.live ?? '—');
+
+      const pending = (c.pending_wf1 || 0) + (c.checking || 0) + (c.approved_wf4 || 0);
+      document.getElementById('badge-pending').textContent = pending || '';
+    }
+
+    document.getElementById('last-refresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    toast('Worker unreachable. Is it running?', 'err');
+  }
+  document.getElementById('refresh-icon').textContent = '🔄';
+}
+
+function setKPI(id, val) {
+  document.getElementById(id).textContent = val;
+}
+
+// ─── Price Compare ────────────────────────────────────────────────────────────
+async function searchPrices() {
+  const domain = document.getElementById('comp-domain').value.trim();
+  if (!domain) { toast('Enter a domain first', 'warn'); return; }
+
+  document.getElementById('comp-icon').textContent = '⏳';
+  document.getElementById('comp-btn').disabled = true;
+  document.getElementById('comp-results').classList.add('hidden');
+  document.getElementById('comp-empty').classList.add('hidden');
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/prices?domain=${encodeURIComponent(domain)}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    renderPrices(domain, data.providers);
+    document.getElementById('comp-results').classList.remove('hidden');
+  } catch (e) {
+    toast('Error: ' + e.message, 'err');
+    document.getElementById('comp-empty').classList.remove('hidden');
+  }
+
+  document.getElementById('comp-icon').textContent = '🔍';
+  document.getElementById('comp-btn').disabled = false;
+}
+
+const PROVIDER_LABELS = {
+  Bazoom: '🔵 Bazoom',
+  Leolytics: '🟡 Leolytics',
+  WhitePress: '🟣 WhitePress',
+  BacklinksGlobal: '🟠 BacklinksGlobal',
+  MeUp: '🟢 MeUp',
+};
+
+function renderPrices(domain, providers) {
+  document.getElementById('comp-domain-label').textContent = 'Results for ' + domain;
+
+  let bestPrice = Infinity;
+  let bestProv = '';
+  let foundCount = 0;
+
+  const tbody = document.getElementById('comp-tbody');
+  tbody.innerHTML = '';
+
+  for (const [prov, info] of Object.entries(providers)) {
+    const tr = document.createElement('tr');
+    if (info.error) {
+      tr.innerHTML = `
+        <td>${PROVIDER_LABELS[prov] || prov}</td>
+        <td colspan="3" class="text-txt-2 italic">Error: ${info.error}</td>
+        <td><span class="badge badge-red">Error</span></td>`;
+    } else if (!info.found) {
+      tr.innerHTML = `
+        <td>${PROVIDER_LABELS[prov] || prov}</td>
+        <td colspan="3" class="text-txt-2">—</td>
+        <td><span class="badge badge-gray">Not listed</span></td>`;
+    } else {
+      foundCount++;
+      const price = parseFloat(info.price) || 0;
+      if (price > 0 && price < bestPrice) { bestPrice = price; bestProv = prov; }
+      tr.innerHTML = `
+        <td>${PROVIDER_LABELS[prov] || prov}</td>
+        <td class="text-txt-2 text-[12px] font-mono">${info.domain || '—'}</td>
+        <td>${info.dr || '—'}</td>
+        <td class="text-right font-bold text-ok">${info.price ? '$' + info.price : '—'}</td>
+        <td><span class="badge badge-green">Found</span></td>`;
+    }
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('comp-found-count').textContent = `Found in ${foundCount} / ${Object.keys(providers).length} providers`;
+
+  const bestEl = document.getElementById('comp-best');
+  if (bestProv && bestPrice < Infinity) {
+    document.getElementById('comp-best-val').textContent = '$' + bestPrice;
+    document.getElementById('comp-best-prov').textContent = bestProv;
+    bestEl.classList.remove('hidden');
+  } else {
+    bestEl.classList.add('hidden');
+  }
+}
+
+// ─── Media DB ─────────────────────────────────────────────────────────────────
+let mediosLoaded = false;
+let mediosOffsets = [null];
+let mediosCurrentPage = 1;
+
+async function loadMedios(page) {
+  if (page < 1) return;
+  mediosLoaded = true;
+
+  const country = document.getElementById('medios-country').value.trim();
+  const pmin    = document.getElementById('medios-pmin').value.trim();
+  const pmax    = document.getElementById('medios-pmax').value.trim();
+
+  if (page === 1) { mediosOffsets = [null]; mediosCurrentPage = 1; }
+
+  const currentOffset = mediosOffsets[mediosCurrentPage - 1] ?? null;
+
+  document.getElementById('medios-icon').textContent = '⏳';
+  document.getElementById('medios-btn').disabled = true;
+  document.getElementById('medios-count').textContent = 'Loading…';
+  document.getElementById('medios-tbody').innerHTML =
+    `<tr><td colspan="5" class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Loading…</td></tr>`;
+
+  const params = new URLSearchParams({ page: mediosCurrentPage });
+  if (country) params.set('country', country);
+  if (pmin)    params.set('price_min', pmin);
+  if (pmax)    params.set('price_max', pmax);
+  if (currentOffset) params.set('offset', currentOffset);
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/medios?${params}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    renderMedios(data);
+    if (data.next_offset) mediosOffsets[mediosCurrentPage] = data.next_offset;
+
+    document.getElementById('medios-prev').disabled = mediosCurrentPage <= 1;
+    document.getElementById('medios-next').disabled = !data.next_offset;
+    document.getElementById('medios-page-info').textContent = `Page ${mediosCurrentPage} — ${data.count} records`;
+    document.getElementById('medios-count').textContent = `${data.count} records on this page`;
+  } catch (e) {
+    toast('Error loading media DB: ' + e.message, 'err');
+    document.getElementById('medios-tbody').innerHTML =
+      `<tr><td colspan="5" class="text-center py-10 text-danger">Error: ${e.message}</td></tr>`;
+  }
+
+  document.getElementById('medios-icon').textContent = '🔍';
+  document.getElementById('medios-btn').disabled = false;
+}
+
+function renderMedios(data) {
+  const tbody = document.getElementById('medios-tbody');
+  tbody.innerHTML = '';
+  if (!data.records || data.records.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-txt-2">No results</td></tr>`;
+    return;
+  }
+  const start = (mediosCurrentPage - 1) * 100 + 1;
+  data.records.forEach((rec, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="text-txt-2 text-[12px]">${start + i}</td>
+      <td class="font-mono text-[12px]">${rec.domain || '—'}</td>
+      <td>${rec.dr ?? '—'}</td>
+      <td class="text-txt-2 text-[12px]">${rec.country || '—'}</td>
+      <td class="text-right font-semibold text-ok">${rec.price ? '$' + rec.price : '—'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function mediosPrev() { if (mediosCurrentPage <= 1) return; mediosCurrentPage--; loadMedios(mediosCurrentPage); }
+function mediosNext() { mediosCurrentPage++; loadMedios(mediosCurrentPage); }
+function clearMediosFilters() {
+  document.getElementById('medios-country').value = '';
+  document.getElementById('medios-pmin').value = '';
+  document.getElementById('medios-pmax').value = '';
+  loadMedios(1);
+}
+
+// ─── Triggers panel ───────────────────────────────────────────────────────────
+async function runWF(wf, dryRun) {
+  const tableId = document.getElementById(`${wf}-table`).value.trim();
+  if (!tableId) { toast('Enter the Airtable table ID', 'warn'); return; }
+
+  const resultEl = document.getElementById(`${wf}-result`);
+  resultEl.innerHTML = '<div class="spinner"></div>';
+  resultEl.classList.remove('hidden');
+
+  try {
+    const body = { linkplan_table_id: tableId, dry_run: dryRun };
+    const resp = await fetch(`${API_BASE}/${wf}/trigger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    renderTriggerResult(resultEl, data, dryRun);
+    toast(dryRun ? `Dry run OK — ${data.processed} rows found` : `${wf.toUpperCase()} done — ${data.processed} processed`, 'ok');
+  } catch (e) {
+    resultEl.innerHTML = `<div class="text-danger text-[12px]">Error: ${e.message}</div>`;
+    toast('Error: ' + e.message, 'err');
+  }
+}
+
+async function runWF2(dryRun) {
+  const tableInternal = document.getElementById('wf2-table-internal').value.trim();
+  const tableClient   = document.getElementById('wf2-table-client').value.trim();
+  if (!tableInternal || !tableClient) { toast('Both table IDs are required for WF2', 'warn'); return; }
+
+  const resultEl = document.getElementById('wf2-result');
+  resultEl.innerHTML = '<div class="spinner"></div>';
+  resultEl.classList.remove('hidden');
+
+  try {
+    const body = { linkplan_table_id: tableInternal, client_sheet_table_id: tableClient, dry_run: dryRun };
+    const resp = await fetch(`${API_BASE}/wf2/trigger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    renderTriggerResult(resultEl, data, dryRun);
+    toast(dryRun ? `Dry run OK — ${data.processed} rows` : `WF2 done — ${data.processed} live links updated`, 'ok');
+  } catch (e) {
+    resultEl.innerHTML = `<div class="text-danger text-[12px]">Error: ${e.message}</div>`;
+    toast('Error: ' + e.message, 'err');
+  }
+}
+
+function renderTriggerResult(el, data, dryRun) {
+  const color = data.errors > 0 ? 'text-warn' : 'text-ok';
+  let html = `<div class="bg-surface-2 rounded-xl p-3 text-[12px] border border-brd">
+    <div class="font-semibold mb-1 ${color}">
+      ${dryRun ? 'DRY RUN — ' : ''}${data.wf}: ${data.processed} processed, ${data.errors} errors
+    </div>`;
+  if (data.detail && data.detail.length) {
+    html += `<div class="mt-2 space-y-1 max-h-40 overflow-y-auto">`;
+    data.detail.forEach(r => {
+      html += `<div class="text-txt-2">${r.dry_run ? '→ ' : '✅ '}<span class="text-txt">${r.domain || r.id}</span> → ${r.to || r.live_link || ''}${r.branch ? ` (${r.branch})` : ''}</div>`;
+    });
+    html += `</div>`;
+  }
+  if (data.error_detail && data.error_detail.length) {
+    html += `<div class="mt-2 space-y-1">`;
+    data.error_detail.forEach(r => {
+      html += `<div class="text-danger">✗ ${r.domain || r.id}: ${r.reason || r.error}</div>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+  el.innerHTML = html;
+  el.classList.remove('hidden');
+}
+
+// ─── Quick modal (Dashboard) ──────────────────────────────────────────────────
+function openTrigger(wf) {
+  currentWF = wf;
+  const titles = {
+    wf1: 'WF1 — First Email to Media',
+    wf2: 'WF2 — Update Live Link',
+    wf3: 'WF3 — Send Article to Client',
+    wf4: 'WF4 — Publish Email to Media',
+  };
+  document.getElementById('modal-title').textContent = titles[wf] || wf.toUpperCase();
+  document.getElementById('modal-result').classList.add('hidden');
+
+  const extra = document.getElementById('modal-extra');
+  if (wf === 'wf2') {
+    extra.classList.remove('hidden');
+    document.getElementById('modal-table-client').value = '';
+  } else {
+    extra.classList.add('hidden');
+  }
+
+  document.getElementById('quick-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('quick-modal').classList.remove('open');
+}
+
+async function runModal(dryRun) {
+  const tableId = document.getElementById('modal-table').value.trim();
+  if (!tableId) { toast('Enter the table ID', 'warn'); return; }
+
+  const resultEl = document.getElementById('modal-result');
+  resultEl.innerHTML = '<div class="spinner"></div>';
+  resultEl.classList.remove('hidden');
+  document.getElementById('modal-run-btn').disabled = true;
+
+  try {
+    let body = { linkplan_table_id: tableId, dry_run: dryRun };
+    if (currentWF === 'wf2') {
+      const clientTable = document.getElementById('modal-table-client').value.trim();
+      if (!clientTable) { toast('Enter client sheet table ID', 'warn'); return; }
+      body.client_sheet_table_id = clientTable;
+    }
+    const resp = await fetch(`${API_BASE}/${currentWF}/trigger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    renderTriggerResult(resultEl, data, dryRun);
+    toast(dryRun ? `Dry run: ${data.processed} rows` : `Done: ${data.processed} processed`, 'ok');
+  } catch (e) {
+    resultEl.innerHTML = `<div class="text-danger text-[12px]">Error: ${e.message}</div>`;
+    toast('Error: ' + e.message, 'err');
+  }
+  document.getElementById('modal-run-btn').disabled = false;
+}
+
+document.getElementById('quick-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+document.getElementById('new-campaign-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeNewCampaignModal();
+});
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+loadCampaigns();
+</script>
+</body>
+</html>
