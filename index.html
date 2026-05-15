@@ -283,19 +283,19 @@ tailwind.config = {
       <div class="kpi-grid">
         <div class="kpi" style="--c:#f59e0b">
           <div class="kpi-icon">✉️</div>
-          <div class="kpi-label">Pending Send (WF1)</div>
+          <div class="kpi-label">Pendiente envío (WF1)</div>
           <div class="kpi-val" id="kpi-wf1">—</div>
           <div class="kpi-sub">Enviar = yes / new</div>
         </div>
         <div class="kpi" style="--c:#3b82f6">
           <div class="kpi-icon">👁️</div>
-          <div class="kpi-label">Client Review (WF3)</div>
+          <div class="kpi-label">Revisión cliente (WF3)</div>
           <div class="kpi-val" id="kpi-wf3">—</div>
           <div class="kpi-sub">Content Status = Checking by Client</div>
         </div>
         <div class="kpi" style="--c:#8b5cf6">
           <div class="kpi-icon">✅</div>
-          <div class="kpi-label">Approved → Pub (WF4)</div>
+          <div class="kpi-label">Aprobado → Pub (WF4)</div>
           <div class="kpi-val" id="kpi-wf4">—</div>
           <div class="kpi-sub">Content Status = Approved</div>
         </div>
@@ -314,24 +314,24 @@ tailwind.config = {
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5">
           <div class="bg-surface-2 border border-brd rounded-xl p-4">
-            <div class="font-semibold text-[13px] mb-1">WF1 — First Email to Media</div>
+            <div class="font-semibold text-[13px] mb-1">WF1 — Primer email al medio</div>
             <div class="text-txt-2 text-[12px] mb-3">Sends first contact email to media (Enviar=yes/new)</div>
-            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf1')">Run WF1</button>
+            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf1')">Ejecutar WF1</button>
           </div>
           <div class="bg-surface-2 border border-brd rounded-xl p-4">
-            <div class="font-semibold text-[13px] mb-1">WF3 — Send Article to Client</div>
+            <div class="font-semibold text-[13px] mb-1">WF3 — Enviar artículo al cliente</div>
             <div class="text-txt-2 text-[12px] mb-3">Sends article link to client for review</div>
-            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf3')">Run WF3</button>
+            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf3')">Ejecutar WF3</button>
           </div>
           <div class="bg-surface-2 border border-brd rounded-xl p-4">
-            <div class="font-semibold text-[13px] mb-1">WF4 — Publish Email to Media</div>
+            <div class="font-semibold text-[13px] mb-1">WF4 — Email de publicación al medio</div>
             <div class="text-txt-2 text-[12px] mb-3">Sends approved article to media for publication</div>
-            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf4')">Run WF4</button>
+            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf4')">Ejecutar WF4</button>
           </div>
           <div class="bg-surface-2 border border-brd rounded-xl p-4">
-            <div class="font-semibold text-[13px] mb-1">WF2 — Update Live Link</div>
+            <div class="font-semibold text-[13px] mb-1">WF2 — Actualizar Link Live</div>
             <div class="text-txt-2 text-[12px] mb-3">Updates live URL in client sheet</div>
-            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf2')">Run WF2</button>
+            <button class="btn btn-primary btn-sm w-full" onclick="openTrigger('wf2')">Ejecutar WF2</button>
           </div>
         </div>
       </div>
@@ -506,18 +506,18 @@ tailwind.config = {
         <div class="tbl-wrap">
           <div class="tbl-head">
             <div>
-              <div class="tbl-title">WF1 — First Email to Media</div>
-              <div class="text-txt-2 text-[12px] mt-0.5">Triggers when Enviar = "yes" (deal) or "new" (no deal).</div>
+              <div class="tbl-title">WF1 — Primer email al medio</div>
+              <div class="text-txt-2 text-[12px] mt-0.5">Se activa cuando Enviar = "yes" (deal) o "new" (sin deal).</div>
             </div>
           </div>
           <div class="p-5">
             <div class="field-group">
-              <label class="field-label">Linkplan Table ID (Airtable)</label>
-              <input type="text" id="wf1-table" value="tblzSdWocIxnZYk9Y" class="font-mono text-xs">
+              <label class="field-label">ID de tabla Linkplan (NocoDB)</label>
+              <input type="text" id="wf1-table" value="mxsx2sfxzeq3hbq" class="font-mono text-xs">
             </div>
             <div class="flex gap-2">
-              <button class="btn btn-ghost btn-sm" onclick="runWF('wf1', true)">Dry Run</button>
-              <button class="btn btn-primary btn-sm" onclick="runWF('wf1', false)">Run WF1</button>
+              <button class="btn btn-ghost btn-sm" onclick="runWF('wf1', true)">Prueba</button>
+              <button class="btn btn-primary btn-sm" onclick="runWF('wf1', false)">Ejecutar WF1</button>
             </div>
             <div id="wf1-result" class="mt-3 hidden"></div>
           </div>
@@ -526,18 +526,18 @@ tailwind.config = {
         <div class="tbl-wrap">
           <div class="tbl-head">
             <div>
-              <div class="tbl-title">WF3 — Send Article to Client</div>
-              <div class="text-txt-2 text-[12px] mt-0.5">Triggers when Content Status = "Checking by Client".</div>
+              <div class="tbl-title">WF3 — Enviar artículo al cliente</div>
+              <div class="text-txt-2 text-[12px] mt-0.5">Se activa cuando Content Status = "Checking by Client".</div>
             </div>
           </div>
           <div class="p-5">
             <div class="field-group">
-              <label class="field-label">Linkplan Table ID (Airtable)</label>
-              <input type="text" id="wf3-table" value="tblzSdWocIxnZYk9Y" class="font-mono text-xs">
+              <label class="field-label">ID de tabla Linkplan (NocoDB)</label>
+              <input type="text" id="wf3-table" value="mxsx2sfxzeq3hbq" class="font-mono text-xs">
             </div>
             <div class="flex gap-2">
-              <button class="btn btn-ghost btn-sm" onclick="runWF('wf3', true)">Dry Run</button>
-              <button class="btn btn-primary btn-sm" onclick="runWF('wf3', false)">Run WF3</button>
+              <button class="btn btn-ghost btn-sm" onclick="runWF('wf3', true)">Prueba</button>
+              <button class="btn btn-primary btn-sm" onclick="runWF('wf3', false)">Ejecutar WF3</button>
             </div>
             <div id="wf3-result" class="mt-3 hidden"></div>
           </div>
@@ -546,18 +546,18 @@ tailwind.config = {
         <div class="tbl-wrap">
           <div class="tbl-head">
             <div>
-              <div class="tbl-title">WF4 — Publish Email to Media</div>
-              <div class="text-txt-2 text-[12px] mt-0.5">Triggers when Content Status = "Approved".</div>
+              <div class="tbl-title">WF4 — Email de publicación al medio</div>
+              <div class="text-txt-2 text-[12px] mt-0.5">Se activa cuando Content Status = "Approved".</div>
             </div>
           </div>
           <div class="p-5">
             <div class="field-group">
-              <label class="field-label">Linkplan Table ID (Airtable)</label>
-              <input type="text" id="wf4-table" value="tblzSdWocIxnZYk9Y" class="font-mono text-xs">
+              <label class="field-label">ID de tabla Linkplan (NocoDB)</label>
+              <input type="text" id="wf4-table" value="mxsx2sfxzeq3hbq" class="font-mono text-xs">
             </div>
             <div class="flex gap-2">
-              <button class="btn btn-ghost btn-sm" onclick="runWF('wf4', true)">Dry Run</button>
-              <button class="btn btn-primary btn-sm" onclick="runWF('wf4', false)">Run WF4</button>
+              <button class="btn btn-ghost btn-sm" onclick="runWF('wf4', true)">Prueba</button>
+              <button class="btn btn-primary btn-sm" onclick="runWF('wf4', false)">Ejecutar WF4</button>
             </div>
             <div id="wf4-result" class="mt-3 hidden"></div>
           </div>
@@ -566,24 +566,24 @@ tailwind.config = {
         <div class="tbl-wrap">
           <div class="tbl-head">
             <div>
-              <div class="tbl-title">WF2 — Update Live Link in Client Sheet</div>
-              <div class="text-txt-2 text-[12px] mt-0.5">Triggers when Live Link has URL and Client Approval = "Approved".</div>
+              <div class="tbl-title">WF2 — Actualizar link live en hoja cliente</div>
+              <div class="text-txt-2 text-[12px] mt-0.5">Se activa cuando Live Link tiene URL y Client Approval = "Approved".</div>
             </div>
           </div>
           <div class="p-5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <div class="field-group">
                 <label class="field-label">Internal Table ID</label>
-                <input type="text" id="wf2-table-internal" value="tblzSdWocIxnZYk9Y" class="font-mono text-xs">
+                <input type="text" id="wf2-table-internal" value="mxsx2sfxzeq3hbq" class="font-mono text-xs">
               </div>
               <div class="field-group">
                 <label class="field-label">Client Sheet Table ID</label>
-                <input type="text" id="wf2-table-client" placeholder="tblXXXXXXXX" class="font-mono text-xs">
+                <input type="text" id="wf2-table-client" placeholder="ID tabla NocoDB" class="font-mono text-xs">
               </div>
             </div>
             <div class="flex gap-2">
-              <button class="btn btn-ghost btn-sm" onclick="runWF2(true)">Dry Run</button>
-              <button class="btn btn-primary btn-sm" onclick="runWF2(false)">Run WF2</button>
+              <button class="btn btn-ghost btn-sm" onclick="runWF2(true)">Prueba</button>
+              <button class="btn btn-primary btn-sm" onclick="runWF2(false)">Ejecutar WF2</button>
             </div>
             <div id="wf2-result" class="mt-3 hidden"></div>
           </div>
@@ -672,18 +672,18 @@ tailwind.config = {
     <div class="modal-title" id="modal-title">Run Workflow</div>
     <div class="field-group">
       <label class="field-label">Linkplan Table ID</label>
-      <input type="text" id="modal-table" value="tblzSdWocIxnZYk9Y" class="font-mono text-xs w-full">
+      <input type="text" id="modal-table" value="mxsx2sfxzeq3hbq" class="font-mono text-xs w-full">
     </div>
     <div id="modal-extra" class="hidden">
       <div class="field-group">
         <label class="field-label">Client Sheet Table ID</label>
-        <input type="text" id="modal-table-client" placeholder="tblXXXXXXXX" class="font-mono text-xs w-full">
+        <input type="text" id="modal-table-client" placeholder="ID tabla NocoDB" class="font-mono text-xs w-full">
       </div>
     </div>
     <div id="modal-result" class="mt-3 hidden"></div>
     <div class="flex gap-2 mt-4 justify-end">
       <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-ghost btn-sm" onclick="runModal(true)">Dry Run</button>
+      <button class="btn btn-ghost btn-sm" onclick="runModal(true)">Prueba</button>
       <button class="btn btn-primary" onclick="runModal(false)" id="modal-run-btn">Run</button>
     </div>
   </div>
@@ -846,7 +846,7 @@ async function loadCampaigns() {
 
   const params = new URLSearchParams();
 
-  // Mapeamos los valores del select a los valores reales de Airtable
+  // Mapeamos valores del select a IDs de tablas NocoDB
   const statusMap = {
     pending_send:  'pending_send_raw',   // se maneja con enviar filter
     email_sent:    'email_sent_raw',
@@ -952,7 +952,7 @@ async function runWFForRow(wf, airtableId, event) {
 
   try {
     // Para row-level triggers usamos el endpoint de WF con la tabla linkplans
-    const tableId = 'tblzSdWocIxnZYk9Y';
+    const tableId = 'mxsx2sfxzeq3hbq';
     let body = { linkplan_table_id: tableId, dry_run: false };
     if (wf === 'wf2') {
       toast('WF2 row-level: use the Triggers panel for full WF2', 'warn');
@@ -1442,7 +1442,7 @@ function clearMediosFilters() {
 // ─── Triggers panel ───────────────────────────────────────────────────────────
 async function runWF(wf, dryRun) {
   const tableId = document.getElementById(`${wf}-table`).value.trim();
-  if (!tableId) { toast('Enter the Airtable table ID', 'warn'); return; }
+  if (!tableId) { toast('Ingresá el ID de tabla NocoDB', 'warn'); return; }
 
   const resultEl = document.getElementById(`${wf}-result`);
   resultEl.innerHTML = '<div class="spinner"></div>';
@@ -1518,10 +1518,10 @@ function renderTriggerResult(el, data, dryRun) {
 function openTrigger(wf) {
   currentWF = wf;
   const titles = {
-    wf1: 'WF1 — First Email to Media',
-    wf2: 'WF2 — Update Live Link',
-    wf3: 'WF3 — Send Article to Client',
-    wf4: 'WF4 — Publish Email to Media',
+    wf1: 'WF1 — Primer email al medio',
+    wf2: 'WF2 — Actualizar Link Live',
+    wf3: 'WF3 — Enviar artículo al cliente',
+    wf4: 'WF4 — Email de publicación al medio',
   };
   document.getElementById('modal-title').textContent = titles[wf] || wf.toUpperCase();
   document.getElementById('modal-result').classList.add('hidden');
