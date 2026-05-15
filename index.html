@@ -185,6 +185,10 @@ tailwind.config = {
       <span>BD Medios</span>
       <span class="nav-count bg-[#1e0a3a] text-purple">8K+</span>
     </div>
+    <div class="nav-item" onclick="showPanel('plantillas')" id="nav-plantillas">
+      <span class="nav-icon">✉️</span>
+      <span>Plantillas</span>
+    </div>
     <div class="nav-item" onclick="showPanel('triggers')" id="nav-triggers">
       <span class="nav-icon">⚡</span>
       <span>Disparadores</span>
@@ -494,6 +498,17 @@ tailwind.config = {
       </div>
     </div>
 
+    <!-- ═══ PANEL: Plantillas ═══ -->
+    <div class="panel" id="panel-plantillas">
+      <div class="mb-6">
+        <h1 class="text-xl font-bold">Plantillas de Email</h1>
+        <p class="text-txt-2 text-[13px] mt-0.5">Editá el asunto y el cuerpo de cada email. Usá <code class="bg-surface-2 px-1 rounded">{domain}</code>, <code class="bg-surface-2 px-1 rounded">{article_url}</code> como variables dinámicas.</p>
+      </div>
+      <div id="plantillas-list" class="flex flex-col gap-5">
+        <div class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Cargando plantillas…</div>
+      </div>
+    </div>
+
     <!-- ═══ PANEL: Triggers ═══ -->
     <div class="panel" id="panel-triggers">
       <div class="mb-6">
@@ -787,6 +802,7 @@ function showPanel(name) {
 
   if (name === 'medios' && !mediosLoaded) loadMedios(1);
   if (name === 'pricelists') loadPriceLists(1);
+  if (name === 'plantillas') loadPlantillas();
   if (name === 'dashboard') loadDashboard();
   if (name === 'campaigns') loadCampaigns();
 }
@@ -1356,6 +1372,92 @@ async function loadPriceLists(page) {
     tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-red-400">Error: ${e.message}</td></tr>`;
   } finally {
     icon.textContent = '🔄';
+  }
+}
+
+// ─── Plantillas de Email ──────────────────────────────────────────────────────
+let plantillasData = [];
+
+async function loadPlantillas() {
+  const container = document.getElementById('plantillas-list');
+  container.innerHTML = '<div class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Cargando plantillas…</div>';
+  try {
+    const resp = await fetch(`${API_BASE}/api/templates`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    plantillasData = data.records || [];
+    renderPlantillas();
+  } catch(e) {
+    container.innerHTML = `<div class="text-center py-8 text-red-400">Error: ${e.message}</div>`;
+  }
+}
+
+function renderPlantillas() {
+  const container = document.getElementById('plantillas-list');
+  if (!plantillasData.length) {
+    container.innerHTML = '<div class="text-center py-8 text-txt-2">Sin plantillas</div>';
+    return;
+  }
+  container.innerHTML = plantillasData.map(tpl => `
+    <div class="tbl-wrap" id="tpl-card-${tpl.Id}">
+      <div class="tbl-head">
+        <div>
+          <span class="tbl-title">${tpl.nombre || tpl.wf_id}</span>
+          <span class="text-txt-2 text-[11px] ml-2">Variables: <code class="bg-surface px-1 rounded">${tpl.variables || '—'}</code></span>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="savePlantilla(${tpl.Id})">Guardar</button>
+      </div>
+      <div class="p-5 flex flex-col gap-4">
+        <div class="field-group mb-0">
+          <label class="field-label">Asunto</label>
+          <input type="text" id="tpl-asunto-${tpl.Id}" value="${(tpl.asunto||'').replace(/"/g,'&quot;')}" class="w-full">
+        </div>
+        <div class="field-group mb-0">
+          <label class="field-label">Cuerpo del email (HTML)</label>
+          <textarea id="tpl-cuerpo-${tpl.Id}" rows="10"
+            class="w-full font-mono text-[12px] bg-surface-2 border border-brd rounded-lg px-3 py-2 text-txt outline-none focus:border-accent resize-y"
+          >${tpl.cuerpo||''}</textarea>
+        </div>
+        <div id="tpl-preview-${tpl.Id}" class="hidden">
+          <label class="field-label mb-2 block">Vista previa</label>
+          <div class="bg-white text-gray-900 rounded-lg p-4 text-sm" id="tpl-preview-body-${tpl.Id}"></div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost btn-sm" onclick="togglePreview(${tpl.Id})">👁 Vista previa</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function savePlantilla(id) {
+  const asunto = document.getElementById(`tpl-asunto-${id}`).value.trim();
+  const cuerpo = document.getElementById(`tpl-cuerpo-${id}`).value;
+  try {
+    const resp = await fetch(`${API_BASE}/api/templates/${id}`, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ asunto, cuerpo })
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    toast('Plantilla guardada ✓', 'ok');
+    // Actualizar datos locales
+    const idx = plantillasData.findIndex(t => t.Id === id);
+    if (idx >= 0) { plantillasData[idx].asunto = asunto; plantillasData[idx].cuerpo = cuerpo; }
+  } catch(e) {
+    toast(`Error: ${e.message}`, 'err');
+  }
+}
+
+function togglePreview(id) {
+  const preview = document.getElementById(`tpl-preview-${id}`);
+  const body    = document.getElementById(`tpl-preview-body-${id}`);
+  if (preview.classList.contains('hidden')) {
+    const cuerpo = document.getElementById(`tpl-cuerpo-${id}`).value;
+    body.innerHTML = cuerpo.replace(/{domain}/g, '<strong>ejemplo.com</strong>').replace(/{article_url}/g, 'https://ejemplo.com/articulo');
+    preview.classList.remove('hidden');
+  } else {
+    preview.classList.add('hidden');
   }
 }
 
