@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KokoLinks CRM — Link-Building Dashboard</title>
+<title>KokoLinks CRM — Panel de Link-Building</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -149,7 +149,7 @@ tailwind.config = {
   <div class="logo-icon">K</div>
   <div>
     <div class="font-bold text-[15px]">KokoLinks CRM</div>
-    <div class="text-txt-2 text-[10px]">Link-Building Dashboard</div>
+    <div class="text-txt-2 text-[10px]">Panel de Link-Building</div>
   </div>
   <div class="flex-1"></div>
   <div class="live-badge"><div class="live-dot"></div>LIVE</div>
@@ -164,26 +164,30 @@ tailwind.config = {
     <div class="px-4 py-2 pb-1 text-txt-2 text-[10px] font-semibold uppercase tracking-wider">Menu</div>
     <div class="nav-item active" onclick="showPanel('campaigns')" id="nav-campaigns">
       <span class="nav-icon">📋</span>
-      <span>Campaigns</span>
+      <span>Campañas</span>
       <span class="nav-count bg-[#422006] text-warn" id="badge-campaigns">—</span>
     </div>
     <div class="nav-item" onclick="showPanel('dashboard')" id="nav-dashboard">
       <span class="nav-icon">📊</span>
-      <span>Dashboard</span>
+      <span>Tablero</span>
       <span class="nav-count bg-[#052e16] text-ok" id="badge-pending">—</span>
     </div>
     <div class="nav-item" onclick="showPanel('comparador')" id="nav-comparador">
       <span class="nav-icon">💰</span>
-      <span>Price Compare</span>
+      <span>Comparar Precios</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('pricelists')" id="nav-pricelists">
+      <span class="nav-icon">📋</span>
+      <span>Price Lists</span>
     </div>
     <div class="nav-item" onclick="showPanel('medios')" id="nav-medios">
       <span class="nav-icon">🌐</span>
-      <span>Media DB</span>
+      <span>BD Medios</span>
       <span class="nav-count bg-[#1e0a3a] text-purple">8K+</span>
     </div>
     <div class="nav-item" onclick="showPanel('triggers')" id="nav-triggers">
       <span class="nav-icon">⚡</span>
-      <span>Triggers</span>
+      <span>Disparadores</span>
     </div>
     <div class="mt-auto px-4 py-3 border-t border-brd">
       <div class="rounded-xl px-3 py-2.5 text-[11px] text-center font-semibold text-bg" style="background:linear-gradient(135deg,#10b981,#3b82f6)">
@@ -200,15 +204,15 @@ tailwind.config = {
     <div class="panel active" id="panel-campaigns">
       <div class="flex items-center justify-between mb-5">
         <div>
-          <h1 class="text-xl font-bold">Campaigns</h1>
-          <p class="text-txt-2 text-[13px] mt-0.5">All active link-building publications</p>
+          <h1 class="text-xl font-bold">Campañas</h1>
+          <p class="text-txt-2 text-[13px] mt-0.5">Todas las publicaciones activas</p>
         </div>
         <div class="flex gap-2">
           <button class="btn btn-ghost btn-sm flex items-center gap-2" onclick="loadCampaigns()">
             <span id="camp-refresh-icon">🔄</span> Refresh
           </button>
           <button class="btn btn-primary btn-sm flex items-center gap-2" onclick="openNewCampaignModal()">
-            + New Campaign
+            + Nueva Campaña
           </button>
         </div>
       </div>
@@ -216,7 +220,7 @@ tailwind.config = {
       <!-- Filters -->
       <div class="filters-row">
         <select id="camp-filter-status" onchange="loadCampaigns()" style="width:180px">
-          <option value="all">All statuses</option>
+          <option value="all">Todos los estados</option>
           <option value="pending_send">Pending Send</option>
           <option value="email_sent">Email Sent</option>
           <option value="client_review">Client Review</option>
@@ -224,7 +228,7 @@ tailwind.config = {
           <option value="live">Live</option>
         </select>
         <select id="camp-filter-country" onchange="loadCampaigns()" style="width:130px">
-          <option value="all">All countries</option>
+          <option value="all">Todos los países</option>
           <option value="AU">AU</option>
           <option value="US">US</option>
           <option value="UK">UK</option>
@@ -236,8 +240,8 @@ tailwind.config = {
 
       <div class="tbl-wrap">
         <div class="tbl-head">
-          <span class="tbl-title">Publications</span>
-          <span class="text-txt-2 text-[12px]" id="camp-count">Loading…</span>
+          <span class="tbl-title">Publicaciones</span>
+          <span class="text-txt-2 text-[12px]" id="camp-count">Cargando…</span>
         </div>
         <div class="overflow-x-auto">
           <table>
@@ -255,7 +259,7 @@ tailwind.config = {
             </thead>
             <tbody id="camp-tbody">
               <tr><td colspan="8" class="text-center py-10 text-txt-2">
-                <div class="spinner mx-auto mb-2"></div>Loading…
+                <div class="spinner mx-auto mb-2"></div>Cargando…
               </td></tr>
             </tbody>
           </table>
@@ -267,7 +271,7 @@ tailwind.config = {
     <div class="panel" id="panel-dashboard">
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h1 class="text-xl font-bold">Dashboard</h1>
+          <h1 class="text-xl font-bold">Tablero</h1>
           <p class="text-txt-2 text-[13px] mt-0.5">Campaign summary</p>
         </div>
         <button class="btn btn-ghost btn-sm flex items-center gap-2" onclick="loadDashboard()">
@@ -336,12 +340,12 @@ tailwind.config = {
     <!-- ═══ PANEL: Price Compare ═══ -->
     <div class="panel" id="panel-comparador">
       <div class="mb-6">
-        <h1 class="text-xl font-bold">Price Comparator</h1>
-        <p class="text-txt-2 text-[13px] mt-0.5">Compare domain prices across 5 providers</p>
+        <h1 class="text-xl font-bold">Comparador de Precios</h1>
+        <p class="text-txt-2 text-[13px] mt-0.5">Comparación de precios en 5 proveedores</p>
       </div>
 
       <div class="search-wrap">
-        <input type="text" id="comp-domain" placeholder="Enter domain, e.g. example.com" onkeydown="if(event.key==='Enter')searchPrices()">
+        <input type="text" id="comp-domain" placeholder="Ingresá un dominio, ej: example.com" onkeydown="if(event.key==='Enter')searchPrices()">
         <button class="btn btn-primary flex items-center gap-2" onclick="searchPrices()" id="comp-btn">
           <span id="comp-icon">🔍</span> Compare
         </button>
@@ -357,7 +361,7 @@ tailwind.config = {
             <table>
               <thead>
                 <tr>
-                  <th>Provider</th>
+                  <th>Proveedor</th>
                   <th>Domain</th>
                   <th>DR</th>
                   <th class="text-right">Price</th>
@@ -381,11 +385,68 @@ tailwind.config = {
       </div>
     </div>
 
+    <!-- ═══ PANEL: Price Lists ═══ -->
+    <div class="panel" id="panel-pricelists">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-bold">Price Lists</h1>
+          <p class="text-txt-2 text-[13px] mt-0.5">Precios consolidados de todos los proveedores</p>
+        </div>
+        <button class="btn btn-primary flex items-center gap-2" onclick="loadPriceLists(1)" id="pl-refresh-btn">
+          <span id="pl-icon">🔄</span> Refresh
+        </button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="flex gap-3 mb-4 flex-wrap">
+        <input type="text" id="pl-search" placeholder="Buscar dominio..." class="input flex-1 min-w-[200px]"
+          onkeydown="if(event.key==='Enter')loadPriceLists(1)">
+        <input type="text" id="pl-country" placeholder="Country..." class="input w-36"
+          onkeydown="if(event.key==='Enter')loadPriceLists(1)">
+        <button class="btn btn-ghost" onclick="document.getElementById('pl-search').value='';document.getElementById('pl-country').value='';loadPriceLists(1)">Clear</button>
+      </div>
+
+      <!-- Tabla -->
+      <div class="tbl-wrap">
+        <div class="tbl-head">
+          <span class="tbl-title">Dominios</span>
+          <span class="text-txt-2 text-[12px]" id="pl-count">—</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Website</th>
+                <th>Country</th>
+                <th>DR</th>
+                <th>Traffic</th>
+                <th class="text-right text-accent">Kokko</th>
+                <th class="text-right text-yellow-400">Bazoom</th>
+                <th class="text-right text-blue-400">Leolytics</th>
+                <th class="text-right text-purple-400">WhitePress</th>
+                <th class="text-right text-orange-400">Backlinks</th>
+                <th class="text-right text-pink-400">MeUp</th>
+              </tr>
+            </thead>
+            <tbody id="pl-tbody">
+              <tr><td colspan="10" class="text-center py-10 text-txt-2">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Paginación -->
+        <div class="flex items-center justify-between px-5 py-3 border-t border-brd">
+          <button class="btn btn-ghost text-[12px]" id="pl-prev" onclick="loadPriceLists(plCurrentPage-1)" disabled>← Anterior</button>
+          <span class="text-txt-2 text-[12px]" id="pl-page-info">Página 1</span>
+          <button class="btn btn-ghost text-[12px]" id="pl-next" onclick="loadPriceLists(plCurrentPage+1)">Siguiente →</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ═══ PANEL: Media DB ═══ -->
     <div class="panel" id="panel-medios">
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h1 class="text-xl font-bold">Media Database</h1>
+          <h1 class="text-xl font-bold">Base de Medios</h1>
           <p class="text-txt-2 text-[13px] mt-0.5">Bazoom catalog — 8,000+ domains</p>
         </div>
       </div>
@@ -402,8 +463,8 @@ tailwind.config = {
 
       <div class="tbl-wrap">
         <div class="tbl-head">
-          <span class="tbl-title">Domains</span>
-          <span class="text-txt-2 text-[12px]" id="medios-count">Loading…</span>
+          <span class="tbl-title">Dominios</span>
+          <span class="text-txt-2 text-[12px]" id="medios-count">Cargando…</span>
         </div>
         <div class="overflow-x-auto">
           <table>
@@ -418,16 +479,16 @@ tailwind.config = {
             </thead>
             <tbody id="medios-tbody">
               <tr><td colspan="5" class="text-center py-10 text-txt-2">
-                <div class="spinner mx-auto mb-2"></div>Loading…
+                <div class="spinner mx-auto mb-2"></div>Cargando…
               </td></tr>
             </tbody>
           </table>
         </div>
         <div class="pagination">
-          <span id="medios-page-info">Page 1</span>
+          <span id="medios-page-info">Página 1</span>
           <div class="flex gap-2">
-            <button class="page-btn" id="medios-prev" onclick="mediosPrev()" disabled>← Prev</button>
-            <button class="page-btn" id="medios-next" onclick="mediosNext()">Next →</button>
+            <button class="page-btn" id="medios-prev" onclick="mediosPrev()" disabled>← Anterior</button>
+            <button class="page-btn" id="medios-next" onclick="mediosNext()">Siguiente →</button>
           </div>
         </div>
       </div>
@@ -574,7 +635,7 @@ tailwind.config = {
   <!-- Fields -->
   <div class="p-5 space-y-4" id="detail-fields">
     <div class="text-center py-8 text-txt-2">
-      <div class="spinner mx-auto mb-2"></div>Loading…
+      <div class="spinner mx-auto mb-2"></div>Cargando…
     </div>
   </div>
 
@@ -631,7 +692,7 @@ tailwind.config = {
 <!-- ═══ Modal: nueva campaña ═══ -->
 <div class="modal-bg" id="new-campaign-modal">
   <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
-    <div class="modal-title">+ New Campaign</div>
+    <div class="modal-title">+ Nueva Campaña</div>
     <div class="grid grid-cols-2 gap-x-4">
       <div class="field-group">
         <label class="field-label">ID (e.g. VP0006)</label>
@@ -725,6 +786,7 @@ function showPanel(name) {
   document.getElementById('nav-' + name).classList.add('active');
 
   if (name === 'medios' && !mediosLoaded) loadMedios(1);
+  if (name === 'pricelists') loadPriceLists(1);
   if (name === 'dashboard') loadDashboard();
   if (name === 'campaigns') loadCampaigns();
 }
@@ -777,7 +839,7 @@ function actionButton(rec) {
 async function loadCampaigns() {
   document.getElementById('camp-refresh-icon').textContent = '⏳';
   document.getElementById('camp-tbody').innerHTML =
-    `<tr><td colspan="8" class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Loading…</td></tr>`;
+    `<tr><td colspan="8" class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Cargando…</td></tr>`;
 
   const statusSel = document.getElementById('camp-filter-status').value;
   const countrySel = document.getElementById('camp-filter-country').value;
@@ -922,7 +984,7 @@ async function openDetail(airtableId) {
   document.getElementById('detail-panel').classList.add('open');
   document.getElementById('detail-overlay').classList.add('open');
   document.getElementById('detail-fields').innerHTML =
-    `<div class="text-center py-8 text-txt-2"><div class="spinner mx-auto mb-2"></div>Loading…</div>`;
+    `<div class="text-center py-8 text-txt-2"><div class="spinner mx-auto mb-2"></div>Cargando…</div>`;
   document.getElementById('detail-save-result').classList.add('hidden');
 
   try {
@@ -1239,6 +1301,64 @@ function renderPrices(domain, providers) {
   }
 }
 
+// ─── Price Lists ──────────────────────────────────────────────────────────────
+let plCurrentPage = 1;
+let plOffset = 0;
+const PL_LIMIT = 100;
+
+async function loadPriceLists(page) {
+  if (page < 1) return;
+  plCurrentPage = page;
+  plOffset = (page - 1) * PL_LIMIT;
+
+  const search  = document.getElementById('pl-search').value.trim();
+  const country = document.getElementById('pl-country').value.trim();
+  const icon    = document.getElementById('pl-icon');
+  const tbody   = document.getElementById('pl-tbody');
+
+  icon.textContent = '⏳';
+  tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-txt-2">Cargando...</td></tr>';
+
+  const params = new URLSearchParams({ limit: PL_LIMIT, offset: plOffset });
+  if (search)  params.set('search', search);
+  if (country) params.set('country', country);
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/pricelists?${params}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    document.getElementById('pl-count').textContent = `${data.total?.toLocaleString() || '—'} domains`;
+
+    if (!data.records.length) {
+      tbody.innerHTML = '<tr><td colspan="10" class="text-center py-10 text-txt-2">No results</td></tr>';
+    } else {
+      tbody.innerHTML = data.records.map(r => `
+        <tr>
+          <td class="font-mono text-[12px] text-accent">${r.website || '—'}</td>
+          <td class="text-[12px]">${r.country || '—'}</td>
+          <td class="text-center">${r.dr || '—'}</td>
+          <td class="text-right text-[12px]">${r.traffic || '—'}</td>
+          <td class="text-right font-semibold text-accent">${r.precio_kokko || '—'}</td>
+          <td class="text-right text-yellow-400">${r.bazoom || '—'}</td>
+          <td class="text-right text-blue-400">${r.leolytics || '—'}</td>
+          <td class="text-right text-purple-400">${r.whitepress || '—'}</td>
+          <td class="text-right text-orange-400">${r.backlinks || '—'}</td>
+          <td class="text-right text-pink-400">${r.meup || '—'}</td>
+        </tr>`).join('');
+    }
+
+    document.getElementById('pl-page-info').textContent = `Page ${page}`;
+    document.getElementById('pl-prev').disabled = page === 1;
+    document.getElementById('pl-next').disabled = data.is_last_page;
+
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-red-400">Error: ${e.message}</td></tr>`;
+  } finally {
+    icon.textContent = '🔄';
+  }
+}
+
 // ─── Media DB ─────────────────────────────────────────────────────────────────
 let mediosLoaded = false;
 let mediosOffsets = [null];
@@ -1258,9 +1378,9 @@ async function loadMedios(page) {
 
   document.getElementById('medios-icon').textContent = '⏳';
   document.getElementById('medios-btn').disabled = true;
-  document.getElementById('medios-count').textContent = 'Loading…';
+  document.getElementById('medios-count').textContent = 'Cargando…';
   document.getElementById('medios-tbody').innerHTML =
-    `<tr><td colspan="5" class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Loading…</td></tr>`;
+    `<tr><td colspan="5" class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Cargando…</td></tr>`;
 
   const params = new URLSearchParams({ page: mediosCurrentPage });
   if (country) params.set('country', country);
