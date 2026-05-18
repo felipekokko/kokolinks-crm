@@ -116,6 +116,15 @@ tailwind.config = {
     .pagination { @apply flex items-center justify-between px-5 py-3 border-t border-brd text-[12px] text-txt-2; }
     .page-btn { @apply px-3 py-1.5 rounded-lg bg-surface-2 border border-brd hover:bg-brd disabled:opacity-40 disabled:cursor-not-allowed text-txt text-[12px]; }
 
+    /* Inline editing */
+    .editable-cell { @apply cursor-text; }
+    .editable-cell[contenteditable="true"] {
+      @apply outline outline-2 outline-accent bg-surface-2 rounded px-1;
+      min-width: 60px;
+    }
+    .new-row-cell { @apply bg-[#0a1f10] cursor-text; }
+    .new-row-cell[contenteditable="true"] { @apply outline outline-2 outline-accent rounded px-1; }
+
     /* Trigger modal */
     .modal-bg { @apply fixed inset-0 bg-black/60 flex items-center justify-center z-[200] hidden; }
     .modal-bg.open { @apply flex; }
@@ -479,10 +488,13 @@ tailwind.config = {
       <div class="tbl-wrap">
         <div class="tbl-head">
           <span class="tbl-title" id="medios-provider-label">Bazoom</span>
-          <span class="text-txt-2 text-[12px]" id="medios-count">—</span>
+          <div class="flex items-center gap-3">
+            <span class="text-txt-2 text-[12px]" id="medios-count">—</span>
+            <button class="btn btn-primary btn-sm" onclick="addMedioRow()">+ Nueva fila</button>
+          </div>
         </div>
         <div class="overflow-x-auto" style="overflow-x:scroll">
-          <table style="min-width:700px">
+          <table id="medios-table" style="min-width:900px">
             <thead id="medios-thead">
               <tr>
                 <th>#</th><th>Domain</th><th>Price</th><th>Country</th><th>DR</th>
@@ -1729,92 +1741,141 @@ function togglePreview(id) {
   }
 }
 
-// ─── Media DB ─────────────────────────────────────────────────────────────────
-// ─── BD Medios — config por proveedor ────────────────────────────────────────
-const MEDIOS_PROVIDERS = {
+// ─── Media DB — BD Medios con edición inline ──────────────────────────────────
+
+// Columnas EXACTAS por proveedor (campo NocoDB => label mostrado)
+const MEDIOS_SCHEMA = {
   bazoom: {
     label: 'Bazoom',
-    endpoint: 'bazoom',
-    cols: ['#','Domain','Price (USD)','Countries',''],
-    render: (rec, i, start) => `
-      <td class="text-txt-2 text-[12px]">${start+i}</td>
-      <td class="font-mono text-[12px]">${rec.domain||'—'}</td>
-      <td class="text-right text-ok font-semibold">${rec.price?'$'+rec.price:'—'}</td>
-      <td class="text-txt-2 text-[12px]">${rec.country||'—'}</td>
-      <td></td>`,
+    tableId: 'mbdpznnm0mxolaj',
+    domainField: '-',
+    cols: [
+      { field: '-',           label: 'Domain' },
+      { field: 'col_1',       label: 'Precio (USD)' },
+      { field: 'France',      label: 'France' },
+      { field: 'Canada',      label: 'Canada' },
+      { field: 'Italia',      label: 'Italia' },
+      { field: 'Hungria',     label: 'Hungria' },
+      { field: 'Finlandia',   label: 'Finlandia' },
+      { field: 'Chile',       label: 'Chile' },
+      { field: 'Netherlands', label: 'Netherlands' },
+      { field: 'España',      label: 'España' },
+      { field: 'Tanzania',    label: 'Tanzania' },
+      { field: 'Kenya',       label: 'Kenya' },
+      { field: 'Uganda',      label: 'Uganda' },
+      { field: 'Zambia',      label: 'Zambia' },
+      { field: 'Australia',   label: 'Australia' },
+    ],
   },
   leolytics: {
     label: 'Leolytics',
-    endpoint: 'leolytics',
-    cols: ['#','Website','Pub. enlace','Pub. mención','DR','DA','Idioma','Categoría'],
-    render: (rec, i, start) => `
-      <td class="text-txt-2 text-[12px]">${start+i}</td>
-      <td class="font-mono text-[12px]">${rec.domain||'—'}</td>
-      <td class="text-right text-ok font-semibold">${rec.price?'$'+rec.price:'—'}</td>
-      <td class="text-right text-txt-2">${rec.price2?'$'+rec.price2:'—'}</td>
-      <td>${rec.dr||'—'}</td>
-      <td>${rec.da||'—'}</td>
-      <td class="text-txt-2 text-[12px]">${rec.language||'—'}</td>
-      <td class="text-txt-2 text-[12px]">${rec.category||'—'}</td>`,
+    tableId: 'mwx5usficvhvqz3',
+    domainField: 'Website',
+    cols: [
+      { field: 'Website',                   label: 'Website' },
+      { field: 'Pub. (enlace)',              label: 'Pub.(enlace)' },
+      { field: 'Pub. (mención)',             label: 'Pub.(mención)' },
+      { field: 'Ins. (enlace)',              label: 'Ins.(enlace)' },
+      { field: 'Ins. (mención)',             label: 'Ins.(mención)' },
+      { field: 'Etiquetado',                 label: 'Etiquetado' },
+      { field: 'Home',                       label: 'Home' },
+      { field: 'Redes',                      label: 'Redes' },
+      { field: 'Idioma',                     label: 'Idioma' },
+      { field: 'Vs.Orgánicas',               label: 'Vs.Orgánicas' },
+      { field: 'Tráfico por país',           label: 'Tráfico país' },
+      { field: 'DA',                         label: 'DA' },
+      { field: 'DR',                         label: 'DR' },
+      { field: 'TF',                         label: 'TF' },
+      { field: 'Visibilidad',                label: 'Visibilidad' },
+      { field: 'Categorías principales',     label: 'Cats. principales' },
+      { field: 'Categorías secundarias',     label: 'Cats. secundarias' },
+      { field: 'Categorías comprometidas',   label: 'Cats. comprometidas' },
+      { field: 'Precio extra',               label: 'Precio extra' },
+      { field: 'Categorías no permitidas',   label: 'Cats. no permitidas' },
+      { field: 'Notas del medio (español)',  label: 'Notas' },
+      { field: '¿Acepta más de un enlace?',  label: '+1 enlace?' },
+      { field: 'Palabra clave',              label: 'Keyword' },
+      { field: 'PRECIO EXTRA POR CASINO',    label: 'Extra Casino' },
+      { field: 'PRECIO REAL CASINO',         label: 'Precio Real Casino' },
+    ],
   },
   whitepress: {
     label: 'WhitePress',
-    endpoint: 'whitepress',
-    cols: ['#','Website','Pub. enlace','Mult. Casino','Precio Casino'],
-    render: (rec, i, start) => `
-      <td class="text-txt-2 text-[12px]">${start+i}</td>
-      <td class="font-mono text-[12px]">${rec.domain||'—'}</td>
-      <td class="text-right text-ok font-semibold">${rec.price?'$'+rec.price:'—'}</td>
-      <td class="text-right text-txt-2">${rec.mult_casino||'—'}</td>
-      <td class="text-right text-purple font-semibold">${rec.precio_casino?'$'+rec.precio_casino:'—'}</td>`,
+    tableId: 'me6qowoq4qaetdn',
+    domainField: 'Website',
+    cols: [
+      { field: 'Website',              label: 'Website' },
+      { field: 'Pub. (enlace)',         label: 'Pub.(enlace)' },
+      { field: 'Multriplicador Casino', label: 'Mult.Casino' },
+      { field: 'Precio Casino',         label: 'Precio Casino' },
+    ],
   },
   backlinksglobal: {
     label: 'BacklinksGlobal',
-    endpoint: 'backlinksglobal',
-    cols: ['#','Site','Country','Language','DA','DR','Price','Category'],
-    render: (rec, i, start) => `
-      <td class="text-txt-2 text-[12px]">${start+i}</td>
-      <td class="font-mono text-[12px]">${rec.domain||'—'}</td>
-      <td class="text-txt-2 text-[12px]">${rec.country||'—'}</td>
-      <td class="text-txt-2 text-[12px]">${rec.language||'—'}</td>
-      <td>${rec.da||'—'}</td>
-      <td>${rec.dr||'—'}</td>
-      <td class="text-right text-ok font-semibold">${rec.price?'$'+rec.price:'—'}</td>
-      <td class="text-txt-2 text-[12px]">${rec.category||'—'}</td>`,
+    tableId: 'm01r3pqfw2hrrfa',
+    domainField: 'site_name',
+    cols: [
+      { field: 'site_name',     label: 'Site' },
+      { field: 'country',       label: 'Country' },
+      { field: 'language',      label: 'Language' },
+      { field: 'da',            label: 'DA' },
+      { field: 'dr',            label: 'DR' },
+      { field: 'category_name', label: 'Category' },
+      { field: 'comment',       label: 'Comment' },
+      { field: 'offer_price',   label: 'Offer Price' },
+      { field: 'offer_type',    label: 'Offer Type' },
+    ],
   },
   meup: {
     label: 'MeUp',
-    endpoint: 'meup',
-    cols: ['#','Domain','Price','Countries',''],
-    render: (rec, i, start) => `
-      <td class="text-txt-2 text-[12px]">${start+i}</td>
-      <td class="font-mono text-[12px]">${rec.domain||'—'}</td>
-      <td class="text-right text-ok font-semibold">${rec.price?'$'+rec.price:'—'}</td>
-      <td class="text-txt-2 text-[12px]">${rec.country||'—'}</td>
-      <td></td>`,
+    tableId: 'm3kqbqqloknqpdn',
+    domainField: 'col_0',
+    cols: [
+      { field: 'col_0',     label: 'Domain' },
+      { field: 'col_1',     label: 'Precio (USD)' },
+      { field: 'France',    label: 'France' },
+      { field: 'Italia',    label: 'Italia' },
+      { field: 'Hungria',   label: 'Hungria' },
+      { field: 'Finlandia', label: 'Finlandia' },
+      { field: 'Chile',     label: 'Chile' },
+      { field: 'España',    label: 'España' },
+      { field: 'Tanzania',  label: 'Tanzania' },
+      { field: 'Kenya',     label: 'Kenya' },
+      { field: 'Uganda',    label: 'Uganda' },
+      { field: 'Zambia',    label: 'Zambia' },
+    ],
   },
 };
 
-let mediosLoaded   = false;
+let mediosLoaded      = false;
 let mediosCurrentPage = 1;
-let mediosOffsets  = [null];
-let mediosProvider = 'bazoom';
+let mediosOffsets     = [null];
+let mediosProvider    = 'bazoom';
+// Cache de registros raw (campo Id de NocoDB) para edicion inline
+let mediosRawCache    = {};
 
 function switchMediosTab(provider) {
-  mediosProvider = provider;
+  mediosProvider    = provider;
   mediosCurrentPage = 1;
-  mediosOffsets = [null];
-  // Actualizar tabs
-  Object.keys(MEDIOS_PROVIDERS).forEach(p => {
+  mediosOffsets     = [null];
+  mediosRawCache    = {};
+
+  Object.keys(MEDIOS_SCHEMA).forEach(p => {
     const btn = document.getElementById('mtab-' + p);
     btn.className = p === provider ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
   });
-  // Actualizar header tabla
-  const cfg = MEDIOS_PROVIDERS[provider];
-  document.getElementById('medios-provider-label').textContent = cfg.label;
-  document.getElementById('medios-thead').innerHTML =
-    '<tr>' + cfg.cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+
+  const schema = MEDIOS_SCHEMA[provider];
+  document.getElementById('medios-provider-label').textContent = schema.label;
+  _renderMediosThead(schema);
   loadMedios(1);
+}
+
+function _renderMediosThead(schema) {
+  document.getElementById('medios-thead').innerHTML =
+    '<tr><th>#</th>' + schema.cols.map(c => '<th style="white-space:nowrap">' + c.label + '</th>').join('') + '</tr>';
+  const minW = Math.max(900, schema.cols.length * 110);
+  document.getElementById('medios-table').style.minWidth = minW + 'px';
 }
 
 async function loadMedios(page) {
@@ -1822,34 +1883,41 @@ async function loadMedios(page) {
   mediosLoaded = true;
   if (page === 1) { mediosOffsets = [null]; mediosCurrentPage = 1; }
 
-  const search = document.getElementById('medios-search').value.trim();
+  const schema        = MEDIOS_SCHEMA[mediosProvider];
+  const search        = document.getElementById('medios-search').value.trim();
   const currentOffset = mediosOffsets[mediosCurrentPage - 1] ?? null;
-  const cfg = MEDIOS_PROVIDERS[mediosProvider];
+  const colCount      = schema.cols.length + 1;
 
   document.getElementById('medios-icon').textContent = '⏳';
   document.getElementById('medios-btn').disabled = true;
   document.getElementById('medios-count').textContent = 'Cargando…';
-  const colCount = cfg.cols.length;
   document.getElementById('medios-tbody').innerHTML =
-    `<tr><td colspan="${colCount}" class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Cargando…</td></tr>`;
+    '<tr><td colspan="' + colCount + '" class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Cargando…</td></tr>';
+
+  _renderMediosThead(schema);
 
   const params = new URLSearchParams({ page: mediosCurrentPage, provider: mediosProvider });
-  if (search) params.set('search', search);
+  if (search)        params.set('search', search);
   if (currentOffset) params.set('offset', currentOffset);
 
   try {
-    const resp = await fetch(`${API_BASE}/api/medios?${params}`);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const resp = await fetch(API_BASE + '/api/medios?' + params);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
-    renderMedios(data, cfg);
+
+    // Guardar raw para acceso por record_id durante edicion
+    (data.records || []).forEach(r => { mediosRawCache[r.id] = r; });
+
+    renderMediosInline(data, schema);
+
     if (data.next_offset) mediosOffsets[mediosCurrentPage] = data.next_offset;
-    document.getElementById('medios-prev').disabled = mediosCurrentPage <= 1;
-    document.getElementById('medios-next').disabled = !data.next_offset;
-    document.getElementById('medios-page-info').textContent = `Página ${mediosCurrentPage}`;
-    document.getElementById('medios-count').textContent = `${data.count} registros`;
-    // Actualizar badge sidebar y tab con total real
+    document.getElementById('medios-prev').disabled     = mediosCurrentPage <= 1;
+    document.getElementById('medios-next').disabled     = !data.next_offset;
+    document.getElementById('medios-page-info').textContent = 'Página ' + mediosCurrentPage;
+    document.getElementById('medios-count').textContent = data.count + ' registros';
+
     if (data.total) {
-      const totalLabel = data.total >= 1000 ? Math.round(data.total/1000) + 'K+' : data.total;
+      const totalLabel = data.total >= 1000 ? Math.round(data.total / 1000) + 'K+' : data.total;
       document.getElementById('badge-medios').textContent = totalLabel;
       const tabCount = document.getElementById('mtab-count-' + mediosProvider);
       if (tabCount) tabCount.textContent = totalLabel;
@@ -1857,25 +1925,204 @@ async function loadMedios(page) {
   } catch (e) {
     toast('Error cargando medios: ' + e.message, 'err');
     document.getElementById('medios-tbody').innerHTML =
-      `<tr><td colspan="${colCount}" class="text-center py-10 text-danger">Error: ${e.message}</td></tr>`;
+      '<tr><td colspan="' + colCount + '" class="text-center py-10 text-danger">Error: ' + e.message + '</td></tr>';
   }
   document.getElementById('medios-icon').textContent = '🔍';
   document.getElementById('medios-btn').disabled = false;
 }
 
-function renderMedios(data, cfg) {
+// ─── Renderizado con edición inline ───────────────────────────────────────────
+function renderMediosInline(data, schema) {
   const tbody = document.getElementById('medios-tbody');
   tbody.innerHTML = '';
   if (!data.records || data.records.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${cfg.cols.length}" class="text-center py-10 text-txt-2">Sin resultados</td></tr>`;
+    tbody.innerHTML = '<tr><td colspan="' + (schema.cols.length + 1) + '" class="text-center py-10 text-txt-2">Sin resultados</td></tr>';
     return;
   }
   const start = (mediosCurrentPage - 1) * 100 + 1;
   data.records.forEach((rec, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = cfg.render(rec, i, start);
+    const tr = _buildMedioRow(rec, schema, start + i);
     tbody.appendChild(tr);
   });
+}
+
+// Mapeo inverso para los campos normalizados que devuelve el worker
+const INVERSE_MAP = {
+  '-':               r => r.domain,
+  'col_0':           r => r.domain,
+  'col_1':           r => r.price,
+  'Website':         r => r.domain,
+  'site_name':       r => r.domain,
+  'Pub. (enlace)':   r => r.price,
+  'offer_price':     r => r.price,
+  'DA':              r => r.da,
+  'DR':              r => r.dr,
+  'da':              r => r.da,
+  'dr':              r => r.dr,
+  'Idioma':          r => r.language,
+  'language':        r => r.language,
+  'country':         r => r.country,
+  'category_name':   r => r.category,
+  'Categorías principales': r => r.category,
+};
+
+function _buildMedioRow(rec, schema, rowNum) {
+  const tr = document.createElement('tr');
+  tr.dataset.recordId = rec.id;
+
+  const tdNum = document.createElement('td');
+  tdNum.className = 'text-txt-2 text-[12px] select-none';
+  tdNum.textContent = rowNum || '';
+  tr.appendChild(tdNum);
+
+  schema.cols.forEach(col => {
+    const mapFn = INVERSE_MAP[col.field];
+    let displayVal = mapFn ? (mapFn(rec) ?? '') : '';
+    if (displayVal === '' || displayVal === null || displayVal === undefined) displayVal = '';
+
+    const td = document.createElement('td');
+    td.className = 'editable-cell text-[12px] font-mono';
+    td.textContent = displayVal;
+    td.dataset.field = col.field;
+    td.title = 'Doble clic para editar (' + col.label + ')';
+
+    td.addEventListener('dblclick', () => _startEdit(td, rec.id, col.field, schema));
+    tr.appendChild(td);
+  });
+
+  return tr;
+}
+
+function _startEdit(td, recordId, field, schema) {
+  if (td.contentEditable === 'true') return;
+  const original = td.textContent;
+  td.contentEditable = 'true';
+  td.focus();
+
+  const range = document.createRange();
+  range.selectNodeContents(td);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  function commit() {
+    td.contentEditable = 'false';
+    const newVal = td.textContent.trim();
+    if (newVal === original) return;
+    _saveInlineEdit(recordId, field, newVal, schema, td, original);
+  }
+
+  td.addEventListener('blur', commit, { once: true });
+  td.addEventListener('keydown', function handler(e) {
+    if (e.key === 'Enter') { e.preventDefault(); td.removeEventListener('keydown', handler); td.blur(); }
+    if (e.key === 'Escape') {
+      td.contentEditable = 'false';
+      td.textContent = original;
+      td.removeEventListener('blur', commit);
+      td.removeEventListener('keydown', handler);
+    }
+  });
+}
+
+async function _saveInlineEdit(recordId, field, value, schema, td, original) {
+  td.style.opacity = '0.5';
+  try {
+    const resp = await fetch(API_BASE + '/api/medios/update', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider:  mediosProvider,
+        table_id:  schema.tableId,
+        record_id: recordId,
+        field:     field,
+        value:     value,
+      }),
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    td.style.opacity = '';
+    td.style.outline = '2px solid #10b981';
+    setTimeout(() => { td.style.outline = ''; }, 1200);
+    toast('Campo "' + field + '" actualizado', 'ok');
+  } catch (e) {
+    td.textContent = original;
+    td.style.opacity = '';
+    toast('Error al guardar: ' + e.message, 'err');
+  }
+}
+
+// ─── Nueva fila inline ────────────────────────────────────────────────────────
+function addMedioRow() {
+  const schema = MEDIOS_SCHEMA[mediosProvider];
+  const tbody  = document.getElementById('medios-tbody');
+
+  const existing = tbody.querySelector('tr[data-new-row]');
+  if (existing) existing.remove();
+
+  const tr = document.createElement('tr');
+  tr.dataset.newRow = '1';
+  tr.style.background = 'rgba(16,185,129,0.06)';
+
+  const tdNum = document.createElement('td');
+  tdNum.className = 'text-ok text-[11px] font-semibold select-none';
+  tdNum.textContent = 'NEW';
+  tr.appendChild(tdNum);
+
+  let firstCell = null;
+  schema.cols.forEach((col, idx) => {
+    const td = document.createElement('td');
+    td.className = 'new-row-cell text-[12px] font-mono';
+    td.contentEditable = 'true';
+    td.dataset.field = col.field;
+    td.setAttribute('placeholder', col.label);
+    td.style.minWidth = '80px';
+    if (idx === 0) firstCell = td;
+    tr.appendChild(td);
+  });
+
+  const tdAct = document.createElement('td');
+  tdAct.innerHTML = '<button class="btn btn-xs btn-primary" onclick="submitNewMedioRow(this)">Guardar</button>' +
+    ' <button class="btn btn-xs btn-ghost ml-1" onclick="this.closest(\'tr[data-new-row]\').remove()">X</button>';
+  tr.appendChild(tdAct);
+
+  tbody.insertBefore(tr, tbody.firstChild);
+  if (firstCell) setTimeout(() => firstCell.focus(), 50);
+  tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function submitNewMedioRow(btn) {
+  const schema = MEDIOS_SCHEMA[mediosProvider];
+  const tr     = btn.closest('tr[data-new-row]');
+  const cells  = tr.querySelectorAll('td[data-field]');
+  const payload = {};
+
+  cells.forEach(td => {
+    const val = td.textContent.trim();
+    if (val) payload[td.dataset.field] = val;
+  });
+
+  if (Object.keys(payload).length === 0) {
+    toast('Completá al menos un campo', 'warn');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  try {
+    const resp = await fetch(API_BASE + '/api/medios/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: mediosProvider, table_id: schema.tableId, data: payload }),
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    toast('Medio guardado correctamente', 'ok');
+    tr.remove();
+    loadMedios(mediosCurrentPage);
+  } catch (e) {
+    toast('Error guardando: ' + e.message, 'err');
+    btn.disabled = false;
+    btn.textContent = 'Guardar';
+  }
 }
 
 function mediosPrev() { if (mediosCurrentPage <= 1) return; mediosCurrentPage--; loadMedios(mediosCurrentPage); }
