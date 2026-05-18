@@ -452,43 +452,44 @@ tailwind.config = {
 
     <!-- ═══ PANEL: Media DB ═══ -->
     <div class="panel" id="panel-medios">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h1 class="text-xl font-bold">Base de Medios</h1>
-          <p class="text-txt-2 text-[13px] mt-0.5">Bazoom catalog — 8,000+ domains</p>
-        </div>
+      <div class="mb-5">
+        <h1 class="text-xl font-bold">Base de Medios</h1>
+        <p class="text-txt-2 text-[13px] mt-0.5">Catálogo de dominios disponibles por proveedor</p>
       </div>
 
-      <div class="filters-row">
-        <input type="text" id="medios-country" placeholder="Country (e.g. US, UK, ES)" style="width:180px">
-        <input type="number" id="medios-pmin" placeholder="Price min" style="width:130px">
-        <input type="number" id="medios-pmax" placeholder="Price max" style="width:130px">
+      <!-- Tabs proveedores -->
+      <div class="flex gap-2 mb-4 flex-wrap">
+        <button class="btn btn-primary btn-sm" onclick="switchMediosTab('bazoom')"         id="mtab-bazoom">Bazoom <span class="opacity-60 text-[10px]">8K+</span></button>
+        <button class="btn btn-ghost btn-sm"   onclick="switchMediosTab('leolytics')"      id="mtab-leolytics">Leolytics</button>
+        <button class="btn btn-ghost btn-sm"   onclick="switchMediosTab('whitepress')"     id="mtab-whitepress">WhitePress</button>
+        <button class="btn btn-ghost btn-sm"   onclick="switchMediosTab('backlinksglobal')" id="mtab-backlinksglobal">BacklinksGlobal</button>
+        <button class="btn btn-ghost btn-sm"   onclick="switchMediosTab('meup')"           id="mtab-meup">MeUp</button>
+      </div>
+
+      <!-- Filtro búsqueda -->
+      <div class="filters-row mb-4">
+        <input type="text" id="medios-search" placeholder="Buscar dominio..." style="width:220px"
+          onkeydown="if(event.key==='Enter')loadMedios(1)">
         <button class="btn btn-primary flex items-center gap-2" onclick="loadMedios(1)" id="medios-btn">
-          <span id="medios-icon">🔍</span> Filter
+          <span id="medios-icon">🔍</span> Buscar
         </button>
-        <button class="btn btn-ghost" onclick="clearMediosFilters()">Clear</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('medios-search').value='';loadMedios(1)">Clear</button>
       </div>
 
       <div class="tbl-wrap">
         <div class="tbl-head">
-          <span class="tbl-title">Dominios</span>
-          <span class="text-txt-2 text-[12px]" id="medios-count">Cargando…</span>
+          <span class="tbl-title" id="medios-provider-label">Bazoom</span>
+          <span class="text-txt-2 text-[12px]" id="medios-count">—</span>
         </div>
         <div class="overflow-x-auto">
           <table>
-            <thead>
+            <thead id="medios-thead">
               <tr>
-                <th>#</th>
-                <th>Domain</th>
-                <th>DR</th>
-                <th>Country</th>
-                <th class="text-right">Price</th>
+                <th>#</th><th>Domain</th><th>Price</th><th>Country</th><th>DR</th>
               </tr>
             </thead>
             <tbody id="medios-tbody">
-              <tr><td colspan="5" class="text-center py-10 text-txt-2">
-                <div class="spinner mx-auto mb-2"></div>Cargando…
-              </td></tr>
+              <tr><td colspan="5" class="text-center py-10 text-txt-2">Seleccioná un proveedor</td></tr>
             </tbody>
           </table>
         </div>
@@ -1695,84 +1696,149 @@ function togglePreview(id) {
 }
 
 // ─── Media DB ─────────────────────────────────────────────────────────────────
-let mediosLoaded = false;
-let mediosOffsets = [null];
+// ─── BD Medios — config por proveedor ────────────────────────────────────────
+const MEDIOS_PROVIDERS = {
+  bazoom: {
+    label: 'Bazoom',
+    endpoint: 'bazoom',
+    cols: ['#','Domain','Price (USD)','Countries',''],
+    render: (rec, i, start) => `
+      <td class="text-txt-2 text-[12px]">${start+i}</td>
+      <td class="font-mono text-[12px]">${rec.domain||'—'}</td>
+      <td class="text-right text-ok font-semibold">${rec.price?'$'+rec.price:'—'}</td>
+      <td class="text-txt-2 text-[12px]">${rec.country||'—'}</td>
+      <td></td>`,
+  },
+  leolytics: {
+    label: 'Leolytics',
+    endpoint: 'leolytics',
+    cols: ['#','Website','Pub. enlace','Pub. mención','DR','DA','Idioma','Categoría'],
+    render: (rec, i, start) => `
+      <td class="text-txt-2 text-[12px]">${start+i}</td>
+      <td class="font-mono text-[12px]">${rec.domain||'—'}</td>
+      <td class="text-right text-ok font-semibold">${rec.price?'$'+rec.price:'—'}</td>
+      <td class="text-right text-txt-2">${rec.price2?'$'+rec.price2:'—'}</td>
+      <td>${rec.dr||'—'}</td>
+      <td>${rec.da||'—'}</td>
+      <td class="text-txt-2 text-[12px]">${rec.language||'—'}</td>
+      <td class="text-txt-2 text-[12px]">${rec.category||'—'}</td>`,
+  },
+  whitepress: {
+    label: 'WhitePress',
+    endpoint: 'whitepress',
+    cols: ['#','Website','Pub. enlace','Mult. Casino','Precio Casino'],
+    render: (rec, i, start) => `
+      <td class="text-txt-2 text-[12px]">${start+i}</td>
+      <td class="font-mono text-[12px]">${rec.domain||'—'}</td>
+      <td class="text-right text-ok font-semibold">${rec.price?'$'+rec.price:'—'}</td>
+      <td class="text-right text-txt-2">${rec.mult_casino||'—'}</td>
+      <td class="text-right text-purple font-semibold">${rec.precio_casino?'$'+rec.precio_casino:'—'}</td>`,
+  },
+  backlinksglobal: {
+    label: 'BacklinksGlobal',
+    endpoint: 'backlinksglobal',
+    cols: ['#','Site','Country','Language','DA','DR','Price','Category'],
+    render: (rec, i, start) => `
+      <td class="text-txt-2 text-[12px]">${start+i}</td>
+      <td class="font-mono text-[12px]">${rec.domain||'—'}</td>
+      <td class="text-txt-2 text-[12px]">${rec.country||'—'}</td>
+      <td class="text-txt-2 text-[12px]">${rec.language||'—'}</td>
+      <td>${rec.da||'—'}</td>
+      <td>${rec.dr||'—'}</td>
+      <td class="text-right text-ok font-semibold">${rec.price?'$'+rec.price:'—'}</td>
+      <td class="text-txt-2 text-[12px]">${rec.category||'—'}</td>`,
+  },
+  meup: {
+    label: 'MeUp',
+    endpoint: 'meup',
+    cols: ['#','Domain','Price','Countries',''],
+    render: (rec, i, start) => `
+      <td class="text-txt-2 text-[12px]">${start+i}</td>
+      <td class="font-mono text-[12px]">${rec.domain||'—'}</td>
+      <td class="text-right text-ok font-semibold">${rec.price?'$'+rec.price:'—'}</td>
+      <td class="text-txt-2 text-[12px]">${rec.country||'—'}</td>
+      <td></td>`,
+  },
+};
+
+let mediosLoaded   = false;
 let mediosCurrentPage = 1;
+let mediosOffsets  = [null];
+let mediosProvider = 'bazoom';
+
+function switchMediosTab(provider) {
+  mediosProvider = provider;
+  mediosCurrentPage = 1;
+  mediosOffsets = [null];
+  // Actualizar tabs
+  Object.keys(MEDIOS_PROVIDERS).forEach(p => {
+    const btn = document.getElementById('mtab-' + p);
+    btn.className = p === provider ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+  });
+  // Actualizar header tabla
+  const cfg = MEDIOS_PROVIDERS[provider];
+  document.getElementById('medios-provider-label').textContent = cfg.label;
+  document.getElementById('medios-thead').innerHTML =
+    '<tr>' + cfg.cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+  loadMedios(1);
+}
 
 async function loadMedios(page) {
   if (page < 1) return;
   mediosLoaded = true;
-
-  const country = document.getElementById('medios-country').value.trim();
-  const pmin    = document.getElementById('medios-pmin').value.trim();
-  const pmax    = document.getElementById('medios-pmax').value.trim();
-
   if (page === 1) { mediosOffsets = [null]; mediosCurrentPage = 1; }
 
+  const search = document.getElementById('medios-search').value.trim();
   const currentOffset = mediosOffsets[mediosCurrentPage - 1] ?? null;
+  const cfg = MEDIOS_PROVIDERS[mediosProvider];
 
   document.getElementById('medios-icon').textContent = '⏳';
   document.getElementById('medios-btn').disabled = true;
   document.getElementById('medios-count').textContent = 'Cargando…';
+  const colCount = cfg.cols.length;
   document.getElementById('medios-tbody').innerHTML =
-    `<tr><td colspan="5" class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Cargando…</td></tr>`;
+    `<tr><td colspan="${colCount}" class="text-center py-10 text-txt-2"><div class="spinner mx-auto mb-2"></div>Cargando…</td></tr>`;
 
-  const params = new URLSearchParams({ page: mediosCurrentPage });
-  if (country) params.set('country', country);
-  if (pmin)    params.set('price_min', pmin);
-  if (pmax)    params.set('price_max', pmax);
+  const params = new URLSearchParams({ page: mediosCurrentPage, provider: mediosProvider });
+  if (search) params.set('search', search);
   if (currentOffset) params.set('offset', currentOffset);
 
   try {
     const resp = await fetch(`${API_BASE}/api/medios?${params}`);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-
-    renderMedios(data);
+    renderMedios(data, cfg);
     if (data.next_offset) mediosOffsets[mediosCurrentPage] = data.next_offset;
-
     document.getElementById('medios-prev').disabled = mediosCurrentPage <= 1;
     document.getElementById('medios-next').disabled = !data.next_offset;
-    document.getElementById('medios-page-info').textContent = `Page ${mediosCurrentPage} — ${data.count} records`;
-    document.getElementById('medios-count').textContent = `${data.count} records on this page`;
+    document.getElementById('medios-page-info').textContent = `Página ${mediosCurrentPage}`;
+    document.getElementById('medios-count').textContent = `${data.count} registros`;
   } catch (e) {
-    toast('Error loading media DB: ' + e.message, 'err');
+    toast('Error cargando medios: ' + e.message, 'err');
     document.getElementById('medios-tbody').innerHTML =
-      `<tr><td colspan="5" class="text-center py-10 text-danger">Error: ${e.message}</td></tr>`;
+      `<tr><td colspan="${colCount}" class="text-center py-10 text-danger">Error: ${e.message}</td></tr>`;
   }
-
   document.getElementById('medios-icon').textContent = '🔍';
   document.getElementById('medios-btn').disabled = false;
 }
 
-function renderMedios(data) {
+function renderMedios(data, cfg) {
   const tbody = document.getElementById('medios-tbody');
   tbody.innerHTML = '';
   if (!data.records || data.records.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-txt-2">No results</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${cfg.cols.length}" class="text-center py-10 text-txt-2">Sin resultados</td></tr>`;
     return;
   }
   const start = (mediosCurrentPage - 1) * 100 + 1;
   data.records.forEach((rec, i) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="text-txt-2 text-[12px]">${start + i}</td>
-      <td class="font-mono text-[12px]">${rec.domain || '—'}</td>
-      <td>${rec.dr ?? '—'}</td>
-      <td class="text-txt-2 text-[12px]">${rec.country || '—'}</td>
-      <td class="text-right font-semibold text-ok">${rec.price ? '$' + rec.price : '—'}</td>`;
+    tr.innerHTML = cfg.render(rec, i, start);
     tbody.appendChild(tr);
   });
 }
 
 function mediosPrev() { if (mediosCurrentPage <= 1) return; mediosCurrentPage--; loadMedios(mediosCurrentPage); }
 function mediosNext() { mediosCurrentPage++; loadMedios(mediosCurrentPage); }
-function clearMediosFilters() {
-  document.getElementById('medios-country').value = '';
-  document.getElementById('medios-pmin').value = '';
-  document.getElementById('medios-pmax').value = '';
-  loadMedios(1);
-}
 
 // ─── Triggers panel ───────────────────────────────────────────────────────────
 async function runWF(wf, dryRun) {
