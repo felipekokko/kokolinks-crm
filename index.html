@@ -185,6 +185,10 @@ tailwind.config = {
       <span>BD Medios</span>
       <span class="nav-count bg-[#1e0a3a] text-purple">8K+</span>
     </div>
+    <div class="nav-item" onclick="showPanel('agregar-medio')" id="nav-agregar-medio">
+      <span class="nav-icon">➕</span>
+      <span>Agregar Medio</span>
+    </div>
     <div class="nav-item" onclick="showPanel('plantillas')" id="nav-plantillas">
       <span class="nav-icon">✉️</span>
       <span>Plantillas</span>
@@ -498,6 +502,154 @@ tailwind.config = {
       </div>
     </div>
 
+    <!-- ═══ PANEL: Agregar Medio ═══ -->
+    <div class="panel" id="panel-agregar-medio">
+      <div class="mb-6">
+        <h1 class="text-xl font-bold">Agregar Medio</h1>
+        <p class="text-txt-2 text-[13px] mt-0.5">Cargá un dominio nuevo a la base de precios de un proveedor</p>
+      </div>
+
+      <!-- Tabs proveedores -->
+      <div class="flex gap-2 mb-6 flex-wrap">
+        <button class="btn btn-primary btn-sm" onclick="switchProviderTab('bazoom')" id="tab-bazoom">Bazoom</button>
+        <button class="btn btn-ghost btn-sm" onclick="switchProviderTab('leolytics')" id="tab-leolytics">Leolytics</button>
+        <button class="btn btn-ghost btn-sm" onclick="switchProviderTab('backlinksglobal')" id="tab-backlinksglobal">BacklinksGlobal</button>
+        <button class="btn btn-ghost btn-sm" onclick="switchProviderTab('whitepress')" id="tab-whitepress">WhitePress</button>
+      </div>
+
+      <!-- Form Bazoom -->
+      <div id="form-bazoom" class="tbl-wrap p-5">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="field-group col-span-2">
+            <label class="field-label">Dominio *</label>
+            <input type="text" id="bz-domain" placeholder="example.com" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Precio (USD)</label>
+            <input type="number" id="bz-price" placeholder="150" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">DR</label>
+            <input type="number" id="bz-dr" placeholder="45" class="w-full">
+          </div>
+          <div class="field-group col-span-2">
+            <label class="field-label">Países</label>
+            <input type="text" id="bz-paises" placeholder="AU, CA, ES..." class="w-full">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="submitMedio('bazoom')">Guardar en Bazoom</button>
+        <div id="am-result-bazoom" class="hidden mt-3 text-sm text-ok"></div>
+      </div>
+
+      <!-- Form Leolytics -->
+      <div id="form-leolytics" class="tbl-wrap p-5" style="display:none">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="field-group col-span-2">
+            <label class="field-label">Website *</label>
+            <input type="text" id="leo-website" placeholder="example.com" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Pub. enlace (precio)</label>
+            <input type="number" id="leo-pub-enlace" placeholder="200" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Pub. mención (precio)</label>
+            <input type="number" id="leo-pub-mencion" placeholder="150" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">DR</label>
+            <input type="number" id="leo-dr" placeholder="45" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">DA</label>
+            <input type="number" id="leo-da" placeholder="40" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Idioma</label>
+            <input type="text" id="leo-idioma" placeholder="ES, EN..." class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Categoría principal</label>
+            <input type="text" id="leo-categoria" placeholder="Tech, Casino..." class="w-full">
+          </div>
+          <div class="field-group col-span-2">
+            <label class="field-label">Notas</label>
+            <input type="text" id="leo-notas" placeholder="Notas del medio..." class="w-full">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="submitMedio('leolytics')">Guardar en Leolytics</button>
+        <div id="am-result-leolytics" class="hidden mt-3 text-sm text-ok"></div>
+      </div>
+
+      <!-- Form BacklinksGlobal -->
+      <div id="form-backlinksglobal" class="tbl-wrap p-5" style="display:none">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="field-group col-span-2">
+            <label class="field-label">Site Name *</label>
+            <input type="text" id="bg-site" placeholder="example.com" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Country</label>
+            <input type="text" id="bg-country" placeholder="AU" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Language</label>
+            <input type="text" id="bg-language" placeholder="EN" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">DA</label>
+            <input type="number" id="bg-da" placeholder="40" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">DR</label>
+            <input type="number" id="bg-dr" placeholder="45" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Offer Price (USD)</label>
+            <input type="number" id="bg-price" placeholder="150" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Offer Type</label>
+            <input type="text" id="bg-type" placeholder="guest_post" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Category</label>
+            <input type="text" id="bg-category" placeholder="Tech" class="w-full">
+          </div>
+          <div class="field-group col-span-2">
+            <label class="field-label">Comment</label>
+            <input type="text" id="bg-comment" placeholder="Notas..." class="w-full">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="submitMedio('backlinksglobal')">Guardar en BacklinksGlobal</button>
+        <div id="am-result-backlinksglobal" class="hidden mt-3 text-sm text-ok"></div>
+      </div>
+
+      <!-- Form WhitePress -->
+      <div id="form-whitepress" class="tbl-wrap p-5" style="display:none">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="field-group col-span-2">
+            <label class="field-label">Website *</label>
+            <input type="text" id="wp-website" placeholder="example.com" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Pub. enlace (precio)</label>
+            <input type="number" id="wp-pub-enlace" placeholder="200" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Multiplicador Casino</label>
+            <input type="number" step="0.1" id="wp-mult-casino" placeholder="1.5" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Precio Casino</label>
+            <input type="number" id="wp-precio-casino" placeholder="300" class="w-full">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="submitMedio('whitepress')">Guardar en WhitePress</button>
+        <div id="am-result-whitepress" class="hidden mt-3 text-sm text-ok"></div>
+      </div>
+    </div>
+
     <!-- ═══ PANEL: Plantillas ═══ -->
     <div class="panel" id="panel-plantillas">
       <div class="mb-6">
@@ -805,6 +957,87 @@ function showPanel(name) {
   if (name === 'plantillas') loadPlantillas();
   if (name === 'dashboard') loadDashboard();
   if (name === 'campaigns') loadCampaigns();
+}
+
+// ─── Agregar Medio ───────────────────────────────────────────────────────────
+function switchProviderTab(provider) {
+  ['bazoom','leolytics','backlinksglobal','whitepress'].forEach(p => {
+    document.getElementById('form-' + p).style.display = p === provider ? '' : 'none';
+    const tab = document.getElementById('tab-' + p);
+    tab.className = p === provider ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+  });
+}
+
+async function submitMedio(provider) {
+  let payload = {};
+  let tableId = '';
+
+  if (provider === 'bazoom') {
+    tableId = 'mbdpznnm0mxolaj';
+    payload = {
+      '-': document.getElementById('bz-domain').value.trim(),
+      'col_1': document.getElementById('bz-price').value || null,
+      'Países': document.getElementById('bz-paises').value.trim() || null,
+    };
+    if (!payload['-']) { toast('El dominio es requerido', 'err'); return; }
+  } else if (provider === 'leolytics') {
+    tableId = 'mwx5usficvhvqz3';
+    payload = {
+      'Website': document.getElementById('leo-website').value.trim(),
+      'Pub. (enlace)': document.getElementById('leo-pub-enlace').value || null,
+      'Pub. (mención)': document.getElementById('leo-pub-mencion').value || null,
+      'DR': document.getElementById('leo-dr').value || null,
+      'DA': document.getElementById('leo-da').value || null,
+      'Idioma': document.getElementById('leo-idioma').value.trim() || null,
+      'Categorías principales': document.getElementById('leo-categoria').value.trim() || null,
+      'Notas del medio (español)': document.getElementById('leo-notas').value.trim() || null,
+    };
+    if (!payload['Website']) { toast('El website es requerido', 'err'); return; }
+  } else if (provider === 'backlinksglobal') {
+    tableId = 'm01r3pqfw2hrrfa';
+    payload = {
+      'site_name': document.getElementById('bg-site').value.trim(),
+      'country': document.getElementById('bg-country').value.trim() || null,
+      'language': document.getElementById('bg-language').value.trim() || null,
+      'da': document.getElementById('bg-da').value || null,
+      'dr': document.getElementById('bg-dr').value || null,
+      'offer_price': document.getElementById('bg-price').value || null,
+      'offer_type': document.getElementById('bg-type').value.trim() || null,
+      'category_name': document.getElementById('bg-category').value.trim() || null,
+      'comment': document.getElementById('bg-comment').value.trim() || null,
+    };
+    if (!payload['site_name']) { toast('El site name es requerido', 'err'); return; }
+  } else if (provider === 'whitepress') {
+    tableId = 'me6qowoq4qaetdn';
+    payload = {
+      'Website': document.getElementById('wp-website').value.trim(),
+      'Pub. (enlace)': document.getElementById('wp-pub-enlace').value || null,
+      'Multriplicador Casino': document.getElementById('wp-mult-casino').value || null,
+      'Precio Casino': document.getElementById('wp-precio-casino').value || null,
+    };
+    if (!payload['Website']) { toast('El website es requerido', 'err'); return; }
+  }
+
+  // Limpiar nulls
+  Object.keys(payload).forEach(k => { if (!payload[k]) delete payload[k]; });
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/medios/add`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, table_id: tableId, data: payload }),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    toast(`Medio guardado en ${provider}`, 'ok');
+    // Limpiar form
+    document.querySelectorAll(`#form-${provider} input`).forEach(i => i.value = '');
+    const res = document.getElementById('am-result-' + provider);
+    res.textContent = '✓ Guardado correctamente';
+    res.classList.remove('hidden');
+    setTimeout(() => res.classList.add('hidden'), 3000);
+  } catch(e) {
+    toast('Error guardando: ' + e.message, 'err');
+  }
 }
 
 // ─── Status badges ────────────────────────────────────────────────────────────
