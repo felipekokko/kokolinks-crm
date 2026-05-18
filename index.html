@@ -1973,9 +1973,8 @@ function _buildMedioRow(rec, schema, rowNum) {
   tr.appendChild(tdNum);
 
   schema.cols.forEach(col => {
-    const mapFn = INVERSE_MAP[col.field];
-    let displayVal = mapFn ? (mapFn(rec) ?? '') : '';
-    if (displayVal === '' || displayVal === null || displayVal === undefined) displayVal = '';
+    let displayVal = rec[col.field] ?? '';
+    if (displayVal === null || displayVal === undefined) displayVal = '';
 
     const td = document.createElement('td');
     td.className = 'editable-cell text-[12px] font-mono';
