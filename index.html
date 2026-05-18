@@ -490,10 +490,12 @@ tailwind.config = {
           <span class="tbl-title" id="medios-provider-label">Bazoom</span>
           <div class="flex items-center gap-3">
             <span class="text-txt-2 text-[12px]" id="medios-count">—</span>
+            <button class="btn btn-ghost btn-sm px-2" onclick="document.getElementById('medios-scroll').scrollBy({left:-300,behavior:'smooth'})" title="Scroll izquierda">◀</button>
+            <button class="btn btn-ghost btn-sm px-2" onclick="document.getElementById('medios-scroll').scrollBy({left:300,behavior:'smooth'})" title="Scroll derecha">▶</button>
             <button class="btn btn-primary btn-sm" onclick="addMedioRow()">+ Nueva fila</button>
           </div>
         </div>
-        <div class="overflow-x-auto" style="overflow-x:scroll">
+        <div class="overflow-x-auto" id="medios-scroll" style="overflow-x:scroll">
           <table id="medios-table" style="min-width:900px">
             <thead id="medios-thead">
               <tr>
