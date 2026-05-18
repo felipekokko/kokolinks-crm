@@ -183,7 +183,7 @@ tailwind.config = {
     <div class="nav-item" onclick="showPanel('medios')" id="nav-medios">
       <span class="nav-icon">🌐</span>
       <span>BD Medios</span>
-      <span class="nav-count bg-[#1e0a3a] text-purple">8K+</span>
+      <span class="nav-count bg-[#1e0a3a] text-purple" id="badge-medios">—</span>
     </div>
     <div class="nav-item" onclick="showPanel('agregar-medio')" id="nav-agregar-medio">
       <span class="nav-icon">➕</span>
@@ -459,7 +459,7 @@ tailwind.config = {
 
       <!-- Tabs proveedores -->
       <div class="flex gap-2 mb-4 flex-wrap">
-        <button class="btn btn-primary btn-sm" onclick="switchMediosTab('bazoom')"         id="mtab-bazoom">Bazoom <span class="opacity-60 text-[10px]">8K+</span></button>
+        <button class="btn btn-primary btn-sm" onclick="switchMediosTab('bazoom')"         id="mtab-bazoom">Bazoom <span class="opacity-60 text-[10px]" id="mtab-count-bazoom">—</span></button>
         <button class="btn btn-ghost btn-sm"   onclick="switchMediosTab('leolytics')"      id="mtab-leolytics">Leolytics</button>
         <button class="btn btn-ghost btn-sm"   onclick="switchMediosTab('whitepress')"     id="mtab-whitepress">WhitePress</button>
         <button class="btn btn-ghost btn-sm"   onclick="switchMediosTab('backlinksglobal')" id="mtab-backlinksglobal">BacklinksGlobal</button>
@@ -1847,6 +1847,13 @@ async function loadMedios(page) {
     document.getElementById('medios-next').disabled = !data.next_offset;
     document.getElementById('medios-page-info').textContent = `Página ${mediosCurrentPage}`;
     document.getElementById('medios-count').textContent = `${data.count} registros`;
+    // Actualizar badge sidebar y tab con total real
+    if (data.total) {
+      const totalLabel = data.total >= 1000 ? Math.round(data.total/1000) + 'K+' : data.total;
+      document.getElementById('badge-medios').textContent = totalLabel;
+      const tabCount = document.getElementById('mtab-count-' + mediosProvider);
+      if (tabCount) tabCount.textContent = totalLabel;
+    }
   } catch (e) {
     toast('Error cargando medios: ' + e.message, 'err');
     document.getElementById('medios-tbody').innerHTML =
