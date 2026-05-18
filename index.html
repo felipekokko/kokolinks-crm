@@ -516,6 +516,7 @@ tailwind.config = {
         <button class="btn btn-ghost btn-sm" onclick="switchProviderTab('leolytics')" id="tab-leolytics">Leolytics</button>
         <button class="btn btn-ghost btn-sm" onclick="switchProviderTab('backlinksglobal')" id="tab-backlinksglobal">BacklinksGlobal</button>
         <button class="btn btn-ghost btn-sm" onclick="switchProviderTab('whitepress')" id="tab-whitepress">WhitePress</button>
+        <button class="btn btn-ghost btn-sm" onclick="switchProviderTab('meup')" id="tab-meup">MeUp</button>
       </div>
 
       <!-- Form Bazoom -->
@@ -624,6 +625,30 @@ tailwind.config = {
         </div>
         <button class="btn btn-primary" onclick="submitMedio('backlinksglobal')">Guardar en BacklinksGlobal</button>
         <div id="am-result-backlinksglobal" class="hidden mt-3 text-sm text-ok"></div>
+      </div>
+
+      <!-- Form MeUp -->
+      <div id="form-meup" class="tbl-wrap p-5" style="display:none">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="field-group col-span-2">
+            <label class="field-label">Dominio *</label>
+            <input type="text" id="meup-domain" placeholder="example.com" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Precio (USD)</label>
+            <input type="number" id="meup-price" placeholder="450" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">País</label>
+            <input type="text" id="meup-country" placeholder="Finland" class="w-full">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Precio Casino</label>
+            <input type="number" id="meup-precio-casino" placeholder="535" class="w-full">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="submitMedio('meup')">Guardar en MeUp</button>
+        <div id="am-result-meup" class="hidden mt-3 text-sm text-ok"></div>
       </div>
 
       <!-- Form WhitePress -->
@@ -962,7 +987,7 @@ function showPanel(name) {
 
 // ─── Agregar Medio ───────────────────────────────────────────────────────────
 function switchProviderTab(provider) {
-  ['bazoom','leolytics','backlinksglobal','whitepress'].forEach(p => {
+  ['bazoom','leolytics','backlinksglobal','whitepress','meup'].forEach(p => {
     document.getElementById('form-' + p).style.display = p === provider ? '' : 'none';
     const tab = document.getElementById('tab-' + p);
     tab.className = p === provider ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
@@ -1008,6 +1033,15 @@ async function submitMedio(provider) {
       'comment': document.getElementById('bg-comment').value.trim() || null,
     };
     if (!payload['site_name']) { toast('El site name es requerido', 'err'); return; }
+  } else if (provider === 'meup') {
+    tableId = 'm3kqbqqloknqpdn';
+    payload = {
+      'col_0': document.getElementById('meup-domain').value.trim(),
+      'col_1': document.getElementById('meup-price').value || null,
+      'France': document.getElementById('meup-country').value.trim() || null,
+      'Italia': document.getElementById('meup-precio-casino').value || null,
+    };
+    if (!payload['col_0']) { toast('El dominio es requerido', 'err'); return; }
   } else if (provider === 'whitepress') {
     tableId = 'me6qowoq4qaetdn';
     payload = {
@@ -1031,7 +1065,7 @@ async function submitMedio(provider) {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     toast(`Medio guardado en ${provider}`, 'ok');
     // Limpiar form
-    document.querySelectorAll(`#form-${provider} input`).forEach(i => i.value = '');
+    document.querySelectorAll(`#form-${provider} input, #form-${provider} select`).forEach(i => i.value = '');
     const res = document.getElementById('am-result-' + provider);
     res.textContent = '✓ Guardado correctamente';
     res.classList.remove('hidden');
