@@ -1978,7 +1978,22 @@ function _buildMedioRow(rec, schema, rowNum) {
 
     const td = document.createElement('td');
     td.className = 'editable-cell text-[12px] font-mono';
-    td.textContent = displayVal;
+
+    // Columnas de dominio/website → link clicable
+    const isUrlCol = ['-', 'col_0', 'Website', 'site_name'].includes(col.field);
+    if (isUrlCol && displayVal) {
+      const a = document.createElement('a');
+      const href = displayVal.startsWith('http') ? displayVal : 'https://' + displayVal;
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = displayVal;
+      a.className = 'text-accent hover:underline';
+      a.addEventListener('click', e => e.stopPropagation());
+      td.appendChild(a);
+    } else {
+      td.textContent = displayVal;
+    }
     td.dataset.field = col.field;
     td.title = 'Doble clic para editar (' + col.label + ')';
 
